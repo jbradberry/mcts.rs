@@ -2,15 +2,15 @@
 pub trait BoardState {
     fn starting_state() -> Self;
 
-    // fn next_state(&self, action: &'static str) -> Self;
+    fn previous_player(&self) -> usize;
 
-    // fn is_legal(&self, action: &'static str) -> bool;
+    fn current_player(&self) -> usize;
 
-    // fn legal_actions(&self) -> Vec<String>;
+    // fn next_state(&self, action: &ChongAction) -> Self;
 
-    // fn previous_player(&self) -> usize;
+    // fn is_legal(&self, action: &ChongAction) -> bool;
 
-    // fn current_player(&self) -> usize;
+    // fn legal_actions(&self) -> Vec<ChongAction>;
 
     // fn is_ended(&self) -> bool;
 }
@@ -26,6 +26,21 @@ struct ChongState {
 }
 
 
+#[derive(Debug)]
+enum ChongPiece {
+    Pawn,
+    Stone
+}
+
+
+#[derive(Debug)]
+struct ChongAction {
+    piece: ChongPiece,
+    x: u8,
+    y: u8
+}
+
+
 impl BoardState for ChongState {
     fn starting_state() -> Self {
         Self {
@@ -36,10 +51,20 @@ impl BoardState for ChongState {
             next: 1
         }
     }
+
+    fn previous_player(&self) -> usize {
+        3 - self.next
+    }
+
+    fn current_player(&self) -> usize {
+        self.next
+    }
 }
 
 
 fn main() {
     let start = ChongState::starting_state();
     println!("{:?}", start);
+    println!("{}", start.current_player());
+    println!("{}", start.previous_player());
 }
