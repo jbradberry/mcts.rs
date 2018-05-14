@@ -6,7 +6,7 @@ pub trait BoardState {
 
     fn current_player(&self) -> usize;
 
-    // fn next_state(&self, action: &ChongAction) -> Self;
+    fn next_state(&self, action: &ChongAction) -> Self;
 
     // fn is_legal(&self, action: &ChongAction) -> bool;
 
@@ -17,7 +17,7 @@ pub trait BoardState {
 
 
 #[derive(Debug)]
-struct ChongState {
+pub struct ChongState {
     pawn1: u64,
     pawn2: u64,
     stones1: u64,
@@ -27,14 +27,14 @@ struct ChongState {
 
 
 #[derive(Debug)]
-enum ChongPiece {
+pub enum ChongPiece {
     Pawn,
     Stone
 }
 
 
 #[derive(Debug)]
-struct ChongAction {
+pub struct ChongAction {
     piece: ChongPiece,
     x: u8,
     y: u8
@@ -59,6 +59,28 @@ impl BoardState for ChongState {
     fn current_player(&self) -> usize {
         self.next
     }
+
+    fn next_state(&self, action: &ChongAction) -> Self {
+        let player = self.current_player();
+        let value = 1 << (action.y * 8 + action.x);
+        match (action, player) {
+            (ChongAction { piece: ChongPiece::Pawn, .. }, 1) => {
+                Self { pawn1: value, next: 3 - player, ..*self }
+            }
+            (ChongAction { piece: ChongPiece::Pawn, .. }, 2) => {
+                Self { pawn2: value, next: 3 - player, ..*self }
+            }
+            (ChongAction { piece: ChongPiece::Stone, .. }, 1) => {
+                Self { stones1: value, next: 3 - player, ..*self }
+            }
+            (ChongAction { piece: ChongPiece::Stone, .. }, 2) => {
+                Self { stones2: value, next: 3 - player, ..*self }
+            }
+            (_, _) => {
+                panic!("Something bad happened!");
+            }
+        }
+    }
 }
 
 
@@ -67,4 +89,6 @@ fn main() {
     println!("{:?}", start);
     println!("{}", start.current_player());
     println!("{}", start.previous_player());
+    let action = ChongAction { piece: ChongPiece::Pawn, x: 1, y: 3 };
+    println!("{:?}", start.next_state(&action))
 }
