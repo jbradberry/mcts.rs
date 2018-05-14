@@ -1,16 +1,19 @@
 
-pub trait BoardState {
+
+pub trait BoardAction {}
+
+pub trait BoardState<T: BoardAction> {
     fn starting_state() -> Self;
 
     fn previous_player(&self) -> usize;
 
     fn current_player(&self) -> usize;
 
-    fn next_state(&self, action: &ChongAction) -> Self;
+    fn next_state(&self, action: &T) -> Self;
 
-    // fn is_legal(&self, action: &ChongAction) -> bool;
+    // fn is_legal(&self, action: &T, history: &[Self]) -> bool;
 
-    // fn legal_actions(&self) -> Vec<ChongAction>;
+    // fn legal_actions(&self) -> Vec<T>;
 
     // fn is_ended(&self) -> bool;
 }
@@ -41,7 +44,10 @@ pub struct ChongAction {
 }
 
 
-impl BoardState for ChongState {
+impl BoardAction for ChongAction {}
+
+
+impl BoardState<ChongAction> for ChongState {
     fn starting_state() -> Self {
         Self {
             pawn1: 1 << (0 * 8 + 3),
