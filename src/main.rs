@@ -1,21 +1,32 @@
 
 
+pub trait BoardPlayer {}
+
+
 pub trait BoardAction {}
 
-pub trait BoardState<T: BoardAction> {
+
+pub trait BoardState<A: BoardAction, P: BoardPlayer> {
     fn starting_state() -> Self;
 
-    fn previous_player(&self) -> usize;
+    fn previous_player(&self) -> P;
 
-    fn current_player(&self) -> usize;
+    fn current_player(&self) -> P;
 
-    fn next_state(&self, action: &T) -> Self;
+    fn next_state(&self, action: &A) -> Self;
 
-    fn is_legal(&self, action: &T, history: &[Self]) -> bool where Self: Sized;
+    fn is_legal(&self, action: &A, history: &[Self]) -> bool where Self: Sized;
 
     // fn legal_actions(&self) -> Vec<T>;
 
     // fn is_ended(&self) -> bool;
+}
+
+
+#[derive(Debug, Clone, Copy)]
+pub enum ChongPlayer {
+    Player1,
+    Player2
 }
 
 
@@ -25,7 +36,7 @@ pub struct ChongState {
     pawn2: u64,
     stones1: u64,
     stones2: u64,
-    next: usize
+    next: ChongPlayer
 }
 
 
@@ -44,42 +55,59 @@ pub struct ChongAction {
 }
 
 
+impl BoardPlayer for ChongPlayer {}
+
+
+impl ChongPlayer {
+    fn next_player(&self) -> ChongPlayer {
+        match self {
+            ChongPlayer::Player1 => ChongPlayer::Player2,
+            ChongPlayer::Player2 => ChongPlayer::Player1
+        }
+    }
+}
+
+
 impl BoardAction for ChongAction {}
 
 
-impl BoardState<ChongAction> for ChongState {
+impl BoardState<ChongAction, ChongPlayer> for ChongState {
     fn starting_state() -> Self {
         Self {
             pawn1: 1 << (0 * 8 + 3),
             pawn2: 1 << (7 * 8 + 4),
             stones1: 0,
             stones2: 0,
-            next: 1
+            next: ChongPlayer::Player1
         }
     }
 
-    fn previous_player(&self) -> usize {
-        3 - self.next
+    fn previous_player(&self) -> ChongPlayer {
+        self.next.next_player()
     }
 
-    fn current_player(&self) -> usize {
+    fn current_player(&self) -> ChongPlayer {
         self.next
     }
 
     fn next_state(&self, action: &ChongAction) -> Self {
         let player = self.current_player();
         let value = 1 << (action.y * 8 + action.x);
-        match (action, player) {
-            (ChongAction { piece: ChongPiece::Pawn, .. }, 1) =>
-                Self { pawn1: value, next: 3 - player, ..*self },
-            (ChongAction { piece: ChongPiece::Pawn, .. }, 2) =>
-                Self { pawn2: value, next: 3 - player, ..*self },
-            (ChongAction { piece: ChongPiece::Stone, .. }, 1) =>
-                Self { stones1: value, next: 3 - player, ..*self },
-            (ChongAction { piece: ChongPiece::Stone, .. }, 2) =>
-                Self { stones2: value, next: 3 - player, ..*self },
-            _ =>
-                panic!("Something bad happened!")
+        match action {
+            ChongAction { piece: ChongPiece::Pawn, .. } =>
+                match player {
+                    ChongPlayer::Player1 =>
+                        Self { pawn1: value, next: self.next.next_player(), ..*self },
+                    ChongPlayer::Player2 =>
+                        Self { pawn2: value, next: self.next.next_player(), ..*self },
+                }
+            ChongAction { piece: ChongPiece::Stone, .. } =>
+                match player {
+                    ChongPlayer::Player1 =>
+                        Self { stones1: value, next: self.next.next_player(), ..*self },
+                    ChongPlayer::Player2 =>
+                        Self { stones2: value, next: self.next.next_player(), ..*self },
+                }
         }
     }
 
@@ -107,8 +135,8 @@ impl BoardState<ChongAction> for ChongState {
 fn main() {
     let start = ChongState::starting_state();
     println!("{:?}", start);
-    println!("{}", start.current_player());
-    println!("{}", start.previous_player());
+    println!("{:?}", start.current_player());
+    println!("{:?}", start.previous_player());
     let action = ChongAction { piece: ChongPiece::Pawn, x: 1, y: 3 };
     println!("{:?}", start.next_state(&action))
 }
