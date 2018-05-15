@@ -70,21 +70,16 @@ impl BoardState<ChongAction> for ChongState {
         let player = self.current_player();
         let value = 1 << (action.y * 8 + action.x);
         match (action, player) {
-            (ChongAction { piece: ChongPiece::Pawn, .. }, 1) => {
-                Self { pawn1: value, next: 3 - player, ..*self }
-            }
-            (ChongAction { piece: ChongPiece::Pawn, .. }, 2) => {
-                Self { pawn2: value, next: 3 - player, ..*self }
-            }
-            (ChongAction { piece: ChongPiece::Stone, .. }, 1) => {
-                Self { stones1: value, next: 3 - player, ..*self }
-            }
-            (ChongAction { piece: ChongPiece::Stone, .. }, 2) => {
-                Self { stones2: value, next: 3 - player, ..*self }
-            }
-            (_, _) => {
-                panic!("Something bad happened!");
-            }
+            (ChongAction { piece: ChongPiece::Pawn, .. }, 1) =>
+                Self { pawn1: value, next: 3 - player, ..*self },
+            (ChongAction { piece: ChongPiece::Pawn, .. }, 2) =>
+                Self { pawn2: value, next: 3 - player, ..*self },
+            (ChongAction { piece: ChongPiece::Stone, .. }, 1) =>
+                Self { stones1: value, next: 3 - player, ..*self },
+            (ChongAction { piece: ChongPiece::Stone, .. }, 2) =>
+                Self { stones2: value, next: 3 - player, ..*self },
+            _ =>
+                panic!("Something bad happened!")
         }
     }
 }
