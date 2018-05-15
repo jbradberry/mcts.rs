@@ -11,7 +11,7 @@ pub trait BoardState<T: BoardAction> {
 
     fn next_state(&self, action: &T) -> Self;
 
-    // fn is_legal(&self, action: &T, history: &[Self]) -> bool;
+    fn is_legal(&self, action: &T, history: &[Self]) -> bool where Self: Sized;
 
     // fn legal_actions(&self) -> Vec<T>;
 
@@ -80,6 +80,25 @@ impl BoardState<ChongAction> for ChongState {
                 Self { stones2: value, next: 3 - player, ..*self },
             _ =>
                 panic!("Something bad happened!")
+        }
+    }
+
+    fn is_legal(&self, action: &ChongAction, history: &[ChongState]) -> bool {
+        if action.x >= 8 { return false }
+        if action.y >= 8 { return false }
+
+        let occupied = self.pawn1 | self.pawn2 | self.stones1 | self.stones2;
+        let value = 1 << (action.y * 8 + action.x);
+
+        if value & occupied != 0 { return false }
+
+        match action {
+            ChongAction { piece: ChongPiece::Pawn, .. } =>
+                true,
+            ChongAction { piece: ChongPiece::Stone, .. } => {
+                if action.y == 0 || action.y == 7 { false }
+                else { true }
+            }
         }
     }
 }
