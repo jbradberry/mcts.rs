@@ -125,8 +125,19 @@ impl BoardState<ChongAction, ChongPlayer> for ChongState {
                 true,
             ChongAction { piece: ChongPiece::Stone, .. } => {
                 if action.y == 0 || action.y == 7 { false }
+                else if self.stones_remaining(self.next) == 0 { false }
                 else { true }
             }
+        }
+    }
+}
+
+
+impl ChongState {
+    fn stones_remaining(&self, player: ChongPlayer) -> u32 {
+        match player {
+            ChongPlayer::Player1 => 6 - self.stones1.count_ones(),
+            ChongPlayer::Player2 => 7 - self.stones2.count_ones(),
         }
     }
 }
