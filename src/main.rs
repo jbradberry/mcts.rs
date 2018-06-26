@@ -50,8 +50,8 @@ pub enum ChongPiece {
 #[derive(Debug)]
 pub struct ChongAction {
     piece: ChongPiece,
-    x: u8,
-    y: u8
+    r: u8,
+    c: u8
 }
 
 
@@ -92,7 +92,7 @@ impl BoardState<ChongAction, ChongPlayer> for ChongState {
 
     fn next_state(&self, action: &ChongAction) -> Self {
         let player = self.current_player();
-        let value = 1 << (action.y * 8 + action.x);
+        let value = 1 << (action.r * 8 + action.c);
         match action {
             ChongAction { piece: ChongPiece::Pawn, .. } =>
                 match player {
@@ -112,19 +112,38 @@ impl BoardState<ChongAction, ChongPlayer> for ChongState {
     }
 
     fn is_legal(&self, action: &ChongAction, history: &[ChongState]) -> bool {
-        if action.x >= 8 { return false }
-        if action.y >= 8 { return false }
+        if action.r >= 8 { return false }
+        if action.c >= 8 { return false }
 
         let occupied = self.pawn1 | self.pawn2 | self.stones1 | self.stones2;
-        let value = 1 << (action.y * 8 + action.x);
+        let value = 1 << (action.r * 8 + action.c);
 
         if value & occupied != 0 { return false }
 
         match action {
-            ChongAction { piece: ChongPiece::Pawn, .. } =>
-                true,
+            ChongAction { piece: ChongPiece::Pawn, .. } => {
+                let player = self.current_player();
+                let (pawn, stones) = match player {
+                    ChongPlayer::Player1 => (self.pawn1, self.stones1),
+                    ChongPlayer::Player2 => (self.pawn2, self.stones2)
+                };
+
+                println!("{}, {}", pawn, value);
+                if (pawn << 8) == value || (pawn >> 8) == value { true }
+                else if ((pawn << 1) & 0x7f7f7f7f7f7f7f7f) == value { true }
+                else if ((pawn >> 1) & 0xfefefefefefefefe) == value { true }
+                else if (pawn << 16) == value && ((pawn << 8) & stones) != 0 { true }
+                else if (pawn >> 16) == value && ((pawn >> 8) & stones) != 0 { true }
+                else if ((pawn << 2) & 0x7f7f7f7f7f7f7f7f) == value && ((pawn << 1) & stones) != 0 { true }
+                else if ((pawn >> 2) & 0xfefefefefefefefe) == value && ((pawn >> 1) & stones) != 0 { true }
+                else if ((pawn << 14) & 0x7f7f7f7f7f7f7f7f) == value && ((pawn << 7) & stones) != 0 { true }
+                else if ((pawn >> 14) & 0xfefefefefefefefe) == value && ((pawn >> 7) & stones) != 0 { true }
+                else if ((pawn << 18) & 0x7f7f7f7f7f7f7f7f) == value && ((pawn << 9) & stones) != 0 { true }
+                else if ((pawn >> 18) & 0xfefefefefefefefe) == value && ((pawn >> 9) & stones) != 0 { true }
+                else { false }
+            },
             ChongAction { piece: ChongPiece::Stone, .. } => {
-                if action.y == 0 || action.y == 7 { false }
+                if action.r == 0 || action.r == 7 { false }
                 else if self.stones_remaining(self.next) == 0 { false }
                 else { true }
             }
@@ -148,6 +167,7 @@ fn main() {
     println!("{:?}", start);
     println!("{:?}", start.current_player());
     println!("{:?}", start.previous_player());
-    let action = ChongAction { piece: ChongPiece::Pawn, x: 1, y: 3 };
-    println!("{:?}", start.next_state(&action))
+    let action = ChongAction { piece: ChongPiece::Pawn, r: 1, c: 3 };
+    println!("{:?}", start.is_legal(&action, &[]));
+    println!("{:?}", start.next_state(&action));
 }
