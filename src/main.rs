@@ -163,46 +163,80 @@ impl ChongState {
 }
 
 
-fn test_pawns(position: &ChongState) -> String {
-    let mut output = [[' ' as u8; 9]; 8];
-    for r in 0..8 {
-        output[r as usize][8] = '\n' as u8;
-        for c in 0..8 {
-            let action = ChongAction { piece: ChongPiece::Pawn, r: r, c: c };
-            output[r as usize][c as usize] = match position.is_legal(&action, &[]) {
-                true => '*' as u8,
-                false => '.' as u8
-            }
-        }
-    }
-
-    output.iter()
-        .map(|x| str::from_utf8(x).unwrap())
-        .collect()
-}
-
-
 fn main() {
     let position = ChongState { pawn1: 1 << (0 * 8 + 3), pawn2: 0,
                                 stones1: 0, stones2: 0, next: ChongPlayer::Player1 };
-    println!("{}\n", test_pawns(&position));
-
-    let position = ChongState { pawn1: 1 << (3 * 8 + 5), pawn2: 0,
-                                stones1: 0, stones2: 0, next: ChongPlayer::Player1 };
-    println!("{}\n", test_pawns(&position));
-
-    let position = ChongState { pawn1: 1 << (7 * 8 + 4), pawn2: 0,
-                                stones1: 0, stones2: 0, next: ChongPlayer::Player1 };
-    println!("{}\n", test_pawns(&position));
-
-    let position = ChongState { pawn1: 1 << (5 * 8 + 0), pawn2: 0,
-                                stones1: 0, stones2: 0, next: ChongPlayer::Player1 };
-    println!("{}\n", test_pawns(&position));
-
-    let position = ChongState { pawn1: 1 << (4 * 8 + 7), pawn2: 0,
-                                stones1: 0, stones2: 0, next: ChongPlayer::Player1 };
-    println!("{}\n", test_pawns(&position));
 
     // println!("{:?}", start.is_legal(&action, &[]));
     // println!("{:?}", start.next_state(&action));
+}
+
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn pawn_move_upper_edge() {
+        let position = ChongState { pawn1: 1 << (0 * 8 + 3), pawn2: 0,
+                                    stones1: 0, stones2: 0, next: ChongPlayer::Player1 };
+        let mut valid_moves = Vec::new();
+
+        for r in 0..8 {
+            for c in 0..8 {
+                let action = ChongAction { piece: ChongPiece::Pawn, r: r, c: c };
+                if position.is_legal(&action, &[]) { valid_moves.push((r, c)); }
+            }
+        }
+
+        assert_eq!(valid_moves, [(0, 2), (0, 4), (1, 3)]);
+    }
+
+    #[test]
+    fn pawn_move_lower_edge() {
+        let position = ChongState { pawn1: 1 << (7 * 8 + 4), pawn2: 0,
+                                    stones1: 0, stones2: 0, next: ChongPlayer::Player1 };
+        let mut valid_moves = Vec::new();
+
+        for r in 0..8 {
+            for c in 0..8 {
+                let action = ChongAction { piece: ChongPiece::Pawn, r: r, c: c };
+                if position.is_legal(&action, &[]) { valid_moves.push((r, c)); }
+            }
+        }
+
+        assert_eq!(valid_moves, [(6, 4), (7, 3), (7, 5)]);
+    }
+
+    #[test]
+    fn pawn_move_left_edge() {
+        let position = ChongState { pawn1: 1 << (2 * 8 + 0), pawn2: 0,
+                                    stones1: 0, stones2: 0, next: ChongPlayer::Player1 };
+        let mut valid_moves = Vec::new();
+
+        for r in 0..8 {
+            for c in 0..8 {
+                let action = ChongAction { piece: ChongPiece::Pawn, r: r, c: c };
+                if position.is_legal(&action, &[]) { valid_moves.push((r, c)); }
+            }
+        }
+
+        assert_eq!(valid_moves, [(1, 0), (2, 1), (3, 0)]);
+    }
+
+    #[test]
+    fn pawn_move_right_edge() {
+        let position = ChongState { pawn1: 1 << (5 * 8 + 7), pawn2: 0,
+                                    stones1: 0, stones2: 0, next: ChongPlayer::Player1 };
+        let mut valid_moves = Vec::new();
+
+        for r in 0..8 {
+            for c in 0..8 {
+                let action = ChongAction { piece: ChongPiece::Pawn, r: r, c: c };
+                if position.is_legal(&action, &[]) { valid_moves.push((r, c)); }
+            }
+        }
+
+        assert_eq!(valid_moves, [(4, 7), (5, 6), (6, 7)]);
+    }
 }
