@@ -72,6 +72,40 @@ impl ChongPlayer {
 impl BoardAction for ChongAction {}
 
 
+impl ChongState {
+    fn coordinate_mask(r: u8, c: u8) -> u64 {
+        if r >= 8 || c >= 8 { panic!("The row or column must be between 0 and 7."); }
+        1 << (8 * r + c)
+    }
+
+    fn build_state(pawn1: (u8, u8), pawn2: (u8, u8),
+                   stones1: &[(u8, u8)], stones2: &[(u8, u8)], next: u8) -> Self {
+        let pawn1 = ChongState::coordinate_mask(pawn1.0, pawn1.1);
+        let pawn2 = ChongState::coordinate_mask(pawn2.0, pawn2.1);
+        let stones1 = stones1.iter()
+            .map(|(r, c)| ChongState::coordinate_mask(*r, *c))
+            .fold(0, |acc, x| acc | x);
+        let stones2 = stones2.iter()
+            .map(|(r, c)| ChongState::coordinate_mask(*r, *c))
+            .fold(0, |acc, x| acc | x);
+
+        let next = match next {
+            1 => ChongPlayer::Player1,
+            2 => ChongPlayer::Player2,
+            _ => panic!("The player to move can only be 1 or 2.")
+        };
+
+        Self {
+            pawn1: pawn1,
+            pawn2: pawn2,
+            stones1: stones1,
+            stones2: stones2,
+            next: next
+        }
+    }
+}
+
+
 impl BoardState<ChongAction, ChongPlayer> for ChongState {
     fn starting_state() -> Self {
         Self {
