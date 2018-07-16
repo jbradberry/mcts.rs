@@ -165,16 +165,16 @@ impl BoardState<ChongAction, ChongPlayer> for ChongState {
 
                 // println!("{}, {}", pawn, value);
                 if (pawn << 8) == value || (pawn >> 8) == value { true }
-                else if ((pawn << 1) & 0xfefefefefefefefe) == value { true }
-                else if ((pawn >> 1) & 0x7f7f7f7f7f7f7f7f) == value { true }
+                else if ((pawn & 0xfefefefefefefefe) >> 1) == value { true }
+                else if ((pawn & 0x7f7f7f7f7f7f7f7f) << 1) == value { true }
                 else if (pawn << 16) == value && ((pawn << 8) & stones) != 0 { true }
                 else if (pawn >> 16) == value && ((pawn >> 8) & stones) != 0 { true }
-                else if ((pawn << 2) & 0xfefefefefefefefe) == value && ((pawn << 1) & stones) != 0 { true }
-                else if ((pawn >> 2) & 0x7f7f7f7f7f7f7f7f) == value && ((pawn >> 1) & stones) != 0 { true }
-                else if ((pawn << 14) & 0xfefefefefefefefe) == value && ((pawn << 7) & stones) != 0 { true }
-                else if ((pawn >> 14) & 0x7f7f7f7f7f7f7f7f) == value && ((pawn >> 7) & stones) != 0 { true }
-                else if ((pawn << 18) & 0xfefefefefefefefe) == value && ((pawn << 9) & stones) != 0 { true }
-                else if ((pawn >> 18) & 0x7f7f7f7f7f7f7f7f) == value && ((pawn >> 9) & stones) != 0 { true }
+                else if ((pawn & 0xfcfcfcfcfcfcfcfc) >> 2) == value && ((pawn >> 1) & stones) != 0 { true }
+                else if ((pawn & 0xfcfcfcfcfcfcfcfc) << 14) == value && ((pawn << 7) & stones) != 0 { true }
+                else if ((pawn & 0xfcfcfcfcfcfcfcfc) >> 18) == value && ((pawn >> 9) & stones) != 0 { true }
+                else if ((pawn & 0x3f3f3f3f3f3f3f3f) << 2) == value && ((pawn << 1) & stones) != 0 { true }
+                else if ((pawn & 0x3f3f3f3f3f3f3f3f) >> 14) == value && ((pawn >> 7) & stones) != 0 { true }
+                else if ((pawn & 0x3f3f3f3f3f3f3f3f) << 18) == value && ((pawn << 9) & stones) != 0 { true }
                 else { false }
             },
             ChongAction { piece: ChongPiece::Stone, .. } => {
@@ -411,7 +411,7 @@ mod tests {
 
     #[test]
     fn pawn_jump_right_edge() {
-        let stones = [(3, 6), (3, 7), (4, 6), (5, 6), (6, 7), (3, 0), (4, 0), (5, 0), (6, 0)];
+        let stones = [(3, 6), (3, 7), (4, 6), (5, 6), (5, 7), (3, 0), (4, 0), (5, 0), (6, 0)];
         let position = ChongState::build_state((4, 7), (0, 0), &stones, &[], 1);
         let mut valid_moves = Vec::new();
 
