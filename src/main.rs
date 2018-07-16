@@ -211,9 +211,23 @@ mod tests {
     use super::*;
 
     #[test]
+    fn pawn_move_center() {
+        let position = ChongState::build_state((3, 4), (7, 4), &[], &[], 1);
+        let mut valid_moves = Vec::new();
+
+        for r in 0..8 {
+            for c in 0..8 {
+                let action = ChongAction { piece: ChongPiece::Pawn, r: r, c: c };
+                if position.is_legal(&action, &[]) { valid_moves.push((r, c)); }
+            }
+        }
+
+        assert_eq!(valid_moves, [(2, 4), (3, 3), (3, 5), (4, 4)]);
+    }
+
+    #[test]
     fn pawn_move_upper_edge() {
-        let position = ChongState { pawn1: 1 << (0 * 8 + 3), pawn2: 0,
-                                    stones1: 0, stones2: 0, next: ChongPlayer::Player1 };
+        let position = ChongState::build_state((0, 3), (7, 4), &[], &[], 1);
         let mut valid_moves = Vec::new();
 
         for r in 0..8 {
@@ -228,8 +242,7 @@ mod tests {
 
     #[test]
     fn pawn_move_lower_edge() {
-        let position = ChongState { pawn1: 1 << (7 * 8 + 4), pawn2: 0,
-                                    stones1: 0, stones2: 0, next: ChongPlayer::Player1 };
+        let position = ChongState::build_state((7, 4), (0, 0), &[], &[], 1);
         let mut valid_moves = Vec::new();
 
         for r in 0..8 {
@@ -244,8 +257,7 @@ mod tests {
 
     #[test]
     fn pawn_move_left_edge() {
-        let position = ChongState { pawn1: 1 << (2 * 8 + 0), pawn2: 0,
-                                    stones1: 0, stones2: 0, next: ChongPlayer::Player1 };
+        let position = ChongState::build_state((2, 0), (7, 7), &[], &[], 1);
         let mut valid_moves = Vec::new();
 
         for r in 0..8 {
@@ -260,8 +272,7 @@ mod tests {
 
     #[test]
     fn pawn_move_right_edge() {
-        let position = ChongState { pawn1: 1 << (5 * 8 + 7), pawn2: 0,
-                                    stones1: 0, stones2: 0, next: ChongPlayer::Player1 };
+        let position = ChongState::build_state((5, 7), (0, 0), &[], &[], 1);
         let mut valid_moves = Vec::new();
 
         for r in 0..8 {
@@ -272,5 +283,65 @@ mod tests {
         }
 
         assert_eq!(valid_moves, [(4, 7), (5, 6), (6, 7)]);
+    }
+
+    #[test]
+    fn pawn_move_top_left() {
+        let position = ChongState::build_state((0, 0), (5, 5), &[], &[], 1);
+        let mut valid_moves = Vec::new();
+
+        for r in 0..8 {
+            for c in 0..8 {
+                let action = ChongAction { piece: ChongPiece::Pawn, r: r, c: c };
+                if position.is_legal(&action, &[]) { valid_moves.push((r, c)); }
+            }
+        }
+
+        assert_eq!(valid_moves, [(0, 1), (1, 0)]);
+    }
+
+    #[test]
+    fn pawn_move_top_right() {
+        let position = ChongState::build_state((0, 7), (5, 5), &[], &[], 1);
+        let mut valid_moves = Vec::new();
+
+        for r in 0..8 {
+            for c in 0..8 {
+                let action = ChongAction { piece: ChongPiece::Pawn, r: r, c: c };
+                if position.is_legal(&action, &[]) { valid_moves.push((r, c)); }
+            }
+        }
+
+        assert_eq!(valid_moves, [(0, 6), (1, 7)]);
+    }
+
+    #[test]
+    fn pawn_move_bottom_left() {
+        let position = ChongState::build_state((7, 0), (5, 5), &[], &[], 1);
+        let mut valid_moves = Vec::new();
+
+        for r in 0..8 {
+            for c in 0..8 {
+                let action = ChongAction { piece: ChongPiece::Pawn, r: r, c: c };
+                if position.is_legal(&action, &[]) { valid_moves.push((r, c)); }
+            }
+        }
+
+        assert_eq!(valid_moves, [(6, 0), (7, 1)]);
+    }
+
+    #[test]
+    fn pawn_move_bottom_right() {
+        let position = ChongState::build_state((7, 7), (5, 5), &[], &[], 1);
+        let mut valid_moves = Vec::new();
+
+        for r in 0..8 {
+            for c in 0..8 {
+                let action = ChongAction { piece: ChongPiece::Pawn, r: r, c: c };
+                if position.is_legal(&action, &[]) { valid_moves.push((r, c)); }
+            }
+        }
+
+        assert_eq!(valid_moves, [(6, 7), (7, 6)]);
     }
 }
