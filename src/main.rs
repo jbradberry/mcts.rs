@@ -15,7 +15,7 @@ pub trait BoardState<A: BoardAction, P: BoardPlayer> {
 
     fn is_legal(&self, action: &A, history: &[Self]) -> bool where Self: Sized;
 
-    // fn legal_actions(&self) -> Vec<T>;
+    fn legal_actions(&self, history: &[Self]) -> Vec<A> where Self: Sized;
 
     // fn is_ended(&self) -> bool;
 }
@@ -197,6 +197,34 @@ impl BoardState<ChongAction, ChongPlayer> for ChongState {
                 else { true }
             }
         }
+    }
+
+    fn legal_actions(&self, history: &[ChongState]) -> Vec<ChongAction> {
+        let mut actions = Vec::with_capacity(56);
+        let occupied = self.pawn1 | self.pawn2 | self.stones1 | self.stones2;
+
+        let valid_stones = match self.stones_remaining(self.next) {
+            0 => 0,
+            _ => !occupied & 0x00ffffffffffff00
+        };
+
+        let valid_pawns = self.pawn_mask();
+
+        for r in 0..8 {
+            for c in 0..8 {
+                let mask = ChongState::coordinate_mask(r, c);
+
+                if mask & valid_stones != 0 {
+                    actions.push(ChongAction { piece: ChongPiece::Stone, r: r, c: c });
+                }
+
+                if mask & valid_pawns != 0 {
+                    actions.push(ChongAction { piece: ChongPiece::Pawn, r: r, c: c });
+                }
+            }
+        }
+
+        actions
     }
 }
 
