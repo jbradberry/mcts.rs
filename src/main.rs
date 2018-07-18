@@ -70,9 +70,38 @@ impl BoardAction for ChongAction {}
 
 
 impl ChongState {
+    fn stones_remaining(&self, player: ChongPlayer) -> u32 {
+        match player {
+            ChongPlayer::Player1 => 6 - self.stones1.count_ones(),
+            ChongPlayer::Player2 => 7 - self.stones2.count_ones(),
+        }
+    }
+
     fn coordinate_mask(r: u8, c: u8) -> u64 {
         if r >= 8 || c >= 8 { panic!("The row or column must be between 0 and 7."); }
         1 << (8 * r + c)
+    }
+
+    fn pawn_mask(&self) -> u64 {
+        let occupied = self.pawn1 | self.pawn2 | self.stones1 | self.stones2;
+
+        let (pawn, stones) = match self.next {
+            ChongPlayer::Player1 => (self.pawn1, self.stones1),
+            ChongPlayer::Player2 => (self.pawn2, self.stones2)
+        };
+
+        ((pawn >> 8) |
+         (pawn << 8) |
+         ((pawn & 0xfefefefefefefefe) >> 1) |
+         ((pawn & 0x7f7f7f7f7f7f7f7f) << 1) |
+         (((pawn >> 8) & stones) >> 8) |
+         (((pawn << 8) & stones) << 8) |
+         ((((pawn & 0xfcfcfcfcfcfcfcfc) >> 1) & stones) >> 1) |
+         ((((pawn & 0xfcfcfcfcfcfcfcfc) << 7) & stones) << 7) |
+         ((((pawn & 0xfcfcfcfcfcfcfcfc) >> 9) & stones) >> 9) |
+         ((((pawn & 0x3f3f3f3f3f3f3f3f) << 1) & stones) << 1) |
+         ((((pawn & 0x3f3f3f3f3f3f3f3f) >> 7) & stones) >> 7) |
+         ((((pawn & 0x3f3f3f3f3f3f3f3f) << 9) & stones) << 9)) & !occupied
     }
 
     fn build_state(pawn1: (u8, u8), pawn2: (u8, u8),
@@ -160,35 +189,13 @@ impl BoardState<ChongAction, ChongPlayer> for ChongState {
                     ChongPlayer::Player2 => (self.pawn2, self.stones2)
                 };
 
-                // println!("{}, {}", pawn, value);
-                if (pawn << 8) == value || (pawn >> 8) == value { true }
-                else if ((pawn & 0xfefefefefefefefe) >> 1) == value { true }
-                else if ((pawn & 0x7f7f7f7f7f7f7f7f) << 1) == value { true }
-                else if (pawn << 16) == value && ((pawn << 8) & stones) != 0 { true }
-                else if (pawn >> 16) == value && ((pawn >> 8) & stones) != 0 { true }
-                else if ((pawn & 0xfcfcfcfcfcfcfcfc) >> 2) == value && ((pawn >> 1) & stones) != 0 { true }
-                else if ((pawn & 0xfcfcfcfcfcfcfcfc) << 14) == value && ((pawn << 7) & stones) != 0 { true }
-                else if ((pawn & 0xfcfcfcfcfcfcfcfc) >> 18) == value && ((pawn >> 9) & stones) != 0 { true }
-                else if ((pawn & 0x3f3f3f3f3f3f3f3f) << 2) == value && ((pawn << 1) & stones) != 0 { true }
-                else if ((pawn & 0x3f3f3f3f3f3f3f3f) >> 14) == value && ((pawn >> 7) & stones) != 0 { true }
-                else if ((pawn & 0x3f3f3f3f3f3f3f3f) << 18) == value && ((pawn << 9) & stones) != 0 { true }
-                else { false }
+                self.pawn_mask() & value != 0
             },
             ChongAction { piece: ChongPiece::Stone, .. } => {
                 if action.r == 0 || action.r == 7 { false }
                 else if self.stones_remaining(self.next) == 0 { false }
                 else { true }
             }
-        }
-    }
-}
-
-
-impl ChongState {
-    fn stones_remaining(&self, player: ChongPlayer) -> u32 {
-        match player {
-            ChongPlayer::Player1 => 6 - self.stones1.count_ones(),
-            ChongPlayer::Player2 => 7 - self.stones2.count_ones(),
         }
     }
 }
