@@ -125,11 +125,11 @@ impl ChongState {
         };
 
         Self {
-            pawn1: pawn1,
-            pawn2: pawn2,
-            stones1: stones1,
-            stones2: stones2,
-            next: next
+            pawn1,
+            pawn2,
+            stones1,
+            stones2,
+            next
         }
     }
 }
@@ -138,8 +138,8 @@ impl ChongState {
 impl BoardState<ChongAction, ChongPlayer> for ChongState {
     fn starting_state() -> Self {
         Self {
-            pawn1: 1 << (0 * 8 + 3),
-            pawn2: 1 << (7 * 8 + 4),
+            pawn1: Self::coordinate_mask(0, 3),
+            pawn2: Self::coordinate_mask(7, 4),
             stones1: 0,
             stones2: 0,
             next: ChongPlayer::Player1
@@ -186,18 +186,11 @@ impl BoardState<ChongAction, ChongPlayer> for ChongState {
 
         match action {
             ChongAction { piece: ChongPiece::Pawn, .. } => {
-                let player = self.current_player();
-                let (pawn, stones) = match player {
-                    ChongPlayer::Player1 => (self.pawn1, self.stones1),
-                    ChongPlayer::Player2 => (self.pawn2, self.stones2)
-                };
-
                 self.pawn_mask() & value != 0
             },
             ChongAction { piece: ChongPiece::Stone, .. } => {
                 if action.r == 0 || action.r == 7 { false }
-                else if self.stones_remaining(self.next) == 0 { false }
-                else { true }
+                else { self.stones_remaining(self.next) != 0 }
             }
         }
     }
@@ -218,11 +211,11 @@ impl BoardState<ChongAction, ChongPlayer> for ChongState {
                 let mask = ChongState::coordinate_mask(r, c);
 
                 if mask & valid_stones != 0 {
-                    actions.push(ChongAction { piece: ChongPiece::Stone, r: r, c: c });
+                    actions.push(ChongAction { piece: ChongPiece::Stone, r, c });
                 }
 
                 if mask & valid_pawns != 0 {
-                    actions.push(ChongAction { piece: ChongPiece::Pawn, r: r, c: c });
+                    actions.push(ChongAction { piece: ChongPiece::Pawn, r, c });
                 }
             }
         }
@@ -233,8 +226,8 @@ impl BoardState<ChongAction, ChongPlayer> for ChongState {
 
 
 fn main() {
-    let position = ChongState { pawn1: 1 << (0 * 8 + 3), pawn2: 0,
-                                stones1: 0, stones2: 0, next: ChongPlayer::Player1 };
+    let _position = ChongState { pawn1: ChongState::coordinate_mask(0, 3), pawn2: 0,
+                                 stones1: 0, stones2: 0, next: ChongPlayer::Player1 };
 
     // println!("{:?}", start.is_legal(&action, &[]));
     // println!("{:?}", start.next_state(&action));
