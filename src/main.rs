@@ -20,18 +20,18 @@ pub trait BoardState<A: BoardAction, P: BoardPlayer> {
 
     fn legal_actions(&self, history: &[Self]) -> Vec<A> where Self: Sized;
 
-    // fn is_ended(&self) -> bool;
+    fn is_ended(&self, history: &[Self]) -> bool where Self: Sized;
 }
 
 
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, PartialEq)]
 pub enum ChongPlayer {
     Player1,
     Player2
 }
 
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub struct ChongState {
     pawn1: u64,
     pawn2: u64,
@@ -221,6 +221,20 @@ impl BoardState<ChongAction, ChongPlayer> for ChongState {
         }
 
         actions
+    }
+
+    fn is_ended(&self, history: &[ChongState]) -> bool {
+        let current_state = match history.last() {
+            None => return false,
+            Some(x) => x
+        };
+
+        if current_state.pawn1 & 0xff00000000000000 != 0 { return true }
+        if current_state.pawn2 & 0x00000000000000ff != 0 { return true }
+        if self.legal_actions(history).len() == 0 { return true }
+        if history.iter().filter(|&s| s == current_state).count() >= 3 { return true }
+
+        false
     }
 }
 
