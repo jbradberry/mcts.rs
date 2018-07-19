@@ -41,14 +41,14 @@ pub struct ChongState {
 }
 
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub enum ChongPiece {
     Pawn,
     Stone
 }
 
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub struct ChongAction {
     piece: ChongPiece,
     r: u8,
@@ -75,8 +75,8 @@ impl BoardAction for ChongAction {}
 impl ChongState {
     fn stones_remaining(&self, player: ChongPlayer) -> u32 {
         match player {
-            ChongPlayer::Player1 => cmp::max(6 - self.stones1.count_ones(), 0),
-            ChongPlayer::Player2 => cmp::max(7 - self.stones2.count_ones(), 0)
+            ChongPlayer::Player1 => 6 - cmp::min(self.stones1.count_ones(), 6),
+            ChongPlayer::Player2 => 7 - cmp::min(self.stones2.count_ones(), 7)
         }
     }
 
@@ -251,6 +251,17 @@ mod tests {
         }
 
         assert_eq!(valid_moves, [(2, 4), (3, 3), (3, 5), (4, 4)]);
+
+        let legal_actions = position.legal_actions(&[])
+            .into_iter()
+            .filter(|a| a.piece == ChongPiece::Pawn)
+            .collect::<Vec<ChongAction>>();
+        assert_eq!(legal_actions, [
+            ChongAction { piece: ChongPiece::Pawn, r: 2, c: 4 },
+            ChongAction { piece: ChongPiece::Pawn, r: 3, c: 3 },
+            ChongAction { piece: ChongPiece::Pawn, r: 3, c: 5 },
+            ChongAction { piece: ChongPiece::Pawn, r: 4, c: 4 }
+        ]);
     }
 
     #[test]
@@ -266,6 +277,16 @@ mod tests {
         }
 
         assert_eq!(valid_moves, [(0, 2), (0, 4), (1, 3)]);
+
+        let legal_actions = position.legal_actions(&[])
+            .into_iter()
+            .filter(|a| a.piece == ChongPiece::Pawn)
+            .collect::<Vec<ChongAction>>();
+        assert_eq!(legal_actions, [
+            ChongAction { piece: ChongPiece::Pawn, r: 0, c: 2 },
+            ChongAction { piece: ChongPiece::Pawn, r: 0, c: 4 },
+            ChongAction { piece: ChongPiece::Pawn, r: 1, c: 3 }
+        ]);
     }
 
     #[test]
@@ -281,6 +302,16 @@ mod tests {
         }
 
         assert_eq!(valid_moves, [(6, 4), (7, 3), (7, 5)]);
+
+        let legal_actions = position.legal_actions(&[])
+            .into_iter()
+            .filter(|a| a.piece == ChongPiece::Pawn)
+            .collect::<Vec<ChongAction>>();
+        assert_eq!(legal_actions, [
+            ChongAction { piece: ChongPiece::Pawn, r: 6, c: 4 },
+            ChongAction { piece: ChongPiece::Pawn, r: 7, c: 3 },
+            ChongAction { piece: ChongPiece::Pawn, r: 7, c: 5 }
+        ]);
     }
 
     #[test]
@@ -296,6 +327,16 @@ mod tests {
         }
 
         assert_eq!(valid_moves, [(1, 0), (2, 1), (3, 0)]);
+
+        let legal_actions = position.legal_actions(&[])
+            .into_iter()
+            .filter(|a| a.piece == ChongPiece::Pawn)
+            .collect::<Vec<ChongAction>>();
+        assert_eq!(legal_actions, [
+            ChongAction { piece: ChongPiece::Pawn, r: 1, c: 0 },
+            ChongAction { piece: ChongPiece::Pawn, r: 2, c: 1 },
+            ChongAction { piece: ChongPiece::Pawn, r: 3, c: 0 }
+        ]);
     }
 
     #[test]
@@ -311,6 +352,16 @@ mod tests {
         }
 
         assert_eq!(valid_moves, [(4, 7), (5, 6), (6, 7)]);
+
+        let legal_actions = position.legal_actions(&[])
+            .into_iter()
+            .filter(|a| a.piece == ChongPiece::Pawn)
+            .collect::<Vec<ChongAction>>();
+        assert_eq!(legal_actions, [
+            ChongAction { piece: ChongPiece::Pawn, r: 4, c: 7 },
+            ChongAction { piece: ChongPiece::Pawn, r: 5, c: 6 },
+            ChongAction { piece: ChongPiece::Pawn, r: 6, c: 7 }
+        ]);
     }
 
     #[test]
@@ -326,6 +377,15 @@ mod tests {
         }
 
         assert_eq!(valid_moves, [(0, 1), (1, 0)]);
+
+        let legal_actions = position.legal_actions(&[])
+            .into_iter()
+            .filter(|a| a.piece == ChongPiece::Pawn)
+            .collect::<Vec<ChongAction>>();
+        assert_eq!(legal_actions, [
+            ChongAction { piece: ChongPiece::Pawn, r: 0, c: 1 },
+            ChongAction { piece: ChongPiece::Pawn, r: 1, c: 0 }
+        ]);
     }
 
     #[test]
@@ -341,6 +401,15 @@ mod tests {
         }
 
         assert_eq!(valid_moves, [(0, 6), (1, 7)]);
+
+        let legal_actions = position.legal_actions(&[])
+            .into_iter()
+            .filter(|a| a.piece == ChongPiece::Pawn)
+            .collect::<Vec<ChongAction>>();
+        assert_eq!(legal_actions, [
+            ChongAction { piece: ChongPiece::Pawn, r: 0, c: 6 },
+            ChongAction { piece: ChongPiece::Pawn, r: 1, c: 7 }
+        ]);
     }
 
     #[test]
@@ -356,6 +425,15 @@ mod tests {
         }
 
         assert_eq!(valid_moves, [(6, 0), (7, 1)]);
+
+        let legal_actions = position.legal_actions(&[])
+            .into_iter()
+            .filter(|a| a.piece == ChongPiece::Pawn)
+            .collect::<Vec<ChongAction>>();
+        assert_eq!(legal_actions, [
+            ChongAction { piece: ChongPiece::Pawn, r: 6, c: 0 },
+            ChongAction { piece: ChongPiece::Pawn, r: 7, c: 1 }
+        ]);
     }
 
     #[test]
@@ -371,6 +449,15 @@ mod tests {
         }
 
         assert_eq!(valid_moves, [(6, 7), (7, 6)]);
+
+        let legal_actions = position.legal_actions(&[])
+            .into_iter()
+            .filter(|a| a.piece == ChongPiece::Pawn)
+            .collect::<Vec<ChongAction>>();
+        assert_eq!(legal_actions, [
+            ChongAction { piece: ChongPiece::Pawn, r: 6, c: 7 },
+            ChongAction { piece: ChongPiece::Pawn, r: 7, c: 6 }
+        ]);
     }
 
     #[test]
@@ -387,6 +474,21 @@ mod tests {
         }
 
         assert_eq!(valid_moves, [(1, 2), (1, 4), (1, 6), (3, 2), (3, 6), (5, 2), (5, 4), (5, 6)]);
+
+        let legal_actions = position.legal_actions(&[])
+            .into_iter()
+            .filter(|a| a.piece == ChongPiece::Pawn)
+            .collect::<Vec<ChongAction>>();
+        assert_eq!(legal_actions, [
+            ChongAction { piece: ChongPiece::Pawn, r: 1, c: 2 },
+            ChongAction { piece: ChongPiece::Pawn, r: 1, c: 4 },
+            ChongAction { piece: ChongPiece::Pawn, r: 1, c: 6 },
+            ChongAction { piece: ChongPiece::Pawn, r: 3, c: 2 },
+            ChongAction { piece: ChongPiece::Pawn, r: 3, c: 6 },
+            ChongAction { piece: ChongPiece::Pawn, r: 5, c: 2 },
+            ChongAction { piece: ChongPiece::Pawn, r: 5, c: 4 },
+            ChongAction { piece: ChongPiece::Pawn, r: 5, c: 6 }
+        ]);
     }
 
     #[test]
@@ -403,6 +505,18 @@ mod tests {
         }
 
         assert_eq!(valid_moves, [(0, 1), (0, 5), (2, 1), (2, 3), (2, 5)]);
+
+        let legal_actions = position.legal_actions(&[])
+            .into_iter()
+            .filter(|a| a.piece == ChongPiece::Pawn)
+            .collect::<Vec<ChongAction>>();
+        assert_eq!(legal_actions, [
+            ChongAction { piece: ChongPiece::Pawn, r: 0, c: 1 },
+            ChongAction { piece: ChongPiece::Pawn, r: 0, c: 5 },
+            ChongAction { piece: ChongPiece::Pawn, r: 2, c: 1 },
+            ChongAction { piece: ChongPiece::Pawn, r: 2, c: 3 },
+            ChongAction { piece: ChongPiece::Pawn, r: 2, c: 5 }
+        ]);
     }
 
     #[test]
@@ -419,6 +533,18 @@ mod tests {
         }
 
         assert_eq!(valid_moves, [(5, 2), (5, 4), (5, 6), (7, 2), (7, 6)]);
+
+        let legal_actions = position.legal_actions(&[])
+            .into_iter()
+            .filter(|a| a.piece == ChongPiece::Pawn)
+            .collect::<Vec<ChongAction>>();
+        assert_eq!(legal_actions, [
+            ChongAction { piece: ChongPiece::Pawn, r: 5, c: 2 },
+            ChongAction { piece: ChongPiece::Pawn, r: 5, c: 4 },
+            ChongAction { piece: ChongPiece::Pawn, r: 5, c: 6 },
+            ChongAction { piece: ChongPiece::Pawn, r: 7, c: 2 },
+            ChongAction { piece: ChongPiece::Pawn, r: 7, c: 6 }
+        ]);
     }
 
     #[test]
@@ -435,6 +561,18 @@ mod tests {
         }
 
         assert_eq!(valid_moves, [(1, 0), (1, 2), (3, 2), (5, 0), (5, 2)]);
+
+        let legal_actions = position.legal_actions(&[])
+            .into_iter()
+            .filter(|a| a.piece == ChongPiece::Pawn)
+            .collect::<Vec<ChongAction>>();
+        assert_eq!(legal_actions, [
+            ChongAction { piece: ChongPiece::Pawn, r: 1, c: 0 },
+            ChongAction { piece: ChongPiece::Pawn, r: 1, c: 2 },
+            ChongAction { piece: ChongPiece::Pawn, r: 3, c: 2 },
+            ChongAction { piece: ChongPiece::Pawn, r: 5, c: 0 },
+            ChongAction { piece: ChongPiece::Pawn, r: 5, c: 2 }
+        ]);
     }
 
     #[test]
@@ -451,6 +589,18 @@ mod tests {
         }
 
         assert_eq!(valid_moves, [(2, 5), (2, 7), (4, 5), (6, 5), (6, 7)]);
+
+        let legal_actions = position.legal_actions(&[])
+            .into_iter()
+            .filter(|a| a.piece == ChongPiece::Pawn)
+            .collect::<Vec<ChongAction>>();
+        assert_eq!(legal_actions, [
+            ChongAction { piece: ChongPiece::Pawn, r: 2, c: 5 },
+            ChongAction { piece: ChongPiece::Pawn, r: 2, c: 7 },
+            ChongAction { piece: ChongPiece::Pawn, r: 4, c: 5 },
+            ChongAction { piece: ChongPiece::Pawn, r: 6, c: 5 },
+            ChongAction { piece: ChongPiece::Pawn, r: 6, c: 7 }
+        ]);
     }
 
     #[test]
@@ -467,6 +617,16 @@ mod tests {
         }
 
         assert_eq!(valid_moves, [(0, 2), (2, 0), (2, 2)]);
+
+        let legal_actions = position.legal_actions(&[])
+            .into_iter()
+            .filter(|a| a.piece == ChongPiece::Pawn)
+            .collect::<Vec<ChongAction>>();
+        assert_eq!(legal_actions, [
+            ChongAction { piece: ChongPiece::Pawn, r: 0, c: 2 },
+            ChongAction { piece: ChongPiece::Pawn, r: 2, c: 0 },
+            ChongAction { piece: ChongPiece::Pawn, r: 2, c: 2 }
+        ]);
     }
 
     #[test]
@@ -483,6 +643,16 @@ mod tests {
         }
 
         assert_eq!(valid_moves, [(0, 5), (2, 5), (2, 7)]);
+
+        let legal_actions = position.legal_actions(&[])
+            .into_iter()
+            .filter(|a| a.piece == ChongPiece::Pawn)
+            .collect::<Vec<ChongAction>>();
+        assert_eq!(legal_actions, [
+            ChongAction { piece: ChongPiece::Pawn, r: 0, c: 5 },
+            ChongAction { piece: ChongPiece::Pawn, r: 2, c: 5 },
+            ChongAction { piece: ChongPiece::Pawn, r: 2, c: 7 }
+        ]);
     }
 
     #[test]
@@ -499,6 +669,16 @@ mod tests {
         }
 
         assert_eq!(valid_moves, [(5, 0), (5, 2), (7, 2)]);
+
+        let legal_actions = position.legal_actions(&[])
+            .into_iter()
+            .filter(|a| a.piece == ChongPiece::Pawn)
+            .collect::<Vec<ChongAction>>();
+        assert_eq!(legal_actions, [
+            ChongAction { piece: ChongPiece::Pawn, r: 5, c: 0 },
+            ChongAction { piece: ChongPiece::Pawn, r: 5, c: 2 },
+            ChongAction { piece: ChongPiece::Pawn, r: 7, c: 2 }
+        ]);
     }
 
     #[test]
@@ -515,5 +695,15 @@ mod tests {
         }
 
         assert_eq!(valid_moves, [(5, 5), (5, 7), (7, 5)]);
+
+        let legal_actions = position.legal_actions(&[])
+            .into_iter()
+            .filter(|a| a.piece == ChongPiece::Pawn)
+            .collect::<Vec<ChongAction>>();
+        assert_eq!(legal_actions, [
+            ChongAction { piece: ChongPiece::Pawn, r: 5, c: 5 },
+            ChongAction { piece: ChongPiece::Pawn, r: 5, c: 7 },
+            ChongAction { piece: ChongPiece::Pawn, r: 7, c: 5 }
+        ]);
     }
 }
