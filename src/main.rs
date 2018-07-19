@@ -1,3 +1,6 @@
+use std::cmp;
+
+
 pub trait BoardPlayer {}
 
 
@@ -72,8 +75,8 @@ impl BoardAction for ChongAction {}
 impl ChongState {
     fn stones_remaining(&self, player: ChongPlayer) -> u32 {
         match player {
-            ChongPlayer::Player1 => 6 - self.stones1.count_ones(),
-            ChongPlayer::Player2 => 7 - self.stones2.count_ones(),
+            ChongPlayer::Player1 => cmp::max(6 - self.stones1.count_ones(), 0),
+            ChongPlayer::Player2 => cmp::max(7 - self.stones2.count_ones(), 0)
         }
     }
 
