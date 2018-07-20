@@ -256,6 +256,13 @@ fn main() {
 
     let deserialized: Vec<ChongState> = serde_json::from_str(&buffer).unwrap();
     println!("deserialized = {:?}", deserialized);
+
+    let current_state = match deserialized.last() {
+        None => return,
+        Some(x) => x,
+    };
+
+    println!("legal actions = {:?}", current_state.legal_actions(&deserialized));
 }
 
 
