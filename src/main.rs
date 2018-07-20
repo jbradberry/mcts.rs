@@ -6,6 +6,8 @@ extern crate serde_json;
 
 
 use std::cmp;
+use std::io;
+use std::io::prelude::*;
 
 
 pub trait BoardPlayer {}
@@ -48,14 +50,14 @@ pub struct ChongState {
 }
 
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Serialize, Deserialize)]
 pub enum ChongPiece {
     Pawn,
     Stone
 }
 
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Serialize, Deserialize)]
 pub struct ChongAction {
     piece: ChongPiece,
     r: u8,
@@ -247,16 +249,12 @@ impl BoardState<ChongAction, ChongPlayer> for ChongState {
 
 
 fn main() {
-    let mut history = Vec::new();
-    history.push(ChongState::starting_state());
-    history.push(
-        ChongState::starting_state()
-            .next_state(&ChongAction { piece: ChongPiece::Pawn, r: 1, c: 3 }));
+    let mut buffer = String::new();
 
-    let serialized = serde_json::to_string(&history).unwrap();
-    println!("serialized = {}", serialized);
+    io::stdin().read_to_string(&mut buffer)
+               .expect("Failed to read input.");
 
-    let deserialized: Vec<ChongState> = serde_json::from_str(&serialized).unwrap();
+    let deserialized: Vec<ChongState> = serde_json::from_str(&buffer).unwrap();
     println!("deserialized = {:?}", deserialized);
 }
 
