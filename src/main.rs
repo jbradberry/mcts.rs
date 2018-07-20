@@ -1,3 +1,10 @@
+#[macro_use]
+extern crate serde_derive;
+
+extern crate serde;
+extern crate serde_json;
+
+
 use std::cmp;
 
 
@@ -24,14 +31,14 @@ pub trait BoardState<A: BoardAction, P: BoardPlayer> {
 }
 
 
-#[derive(Debug, Clone, Copy, PartialEq)]
+#[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize)]
 pub enum ChongPlayer {
     Player1,
     Player2
 }
 
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Serialize, Deserialize)]
 pub struct ChongState {
     pawn1: u64,
     pawn2: u64,
@@ -240,11 +247,17 @@ impl BoardState<ChongAction, ChongPlayer> for ChongState {
 
 
 fn main() {
-    let _position = ChongState { pawn1: ChongState::coordinate_mask(0, 3), pawn2: 0,
-                                 stones1: 0, stones2: 0, next: ChongPlayer::Player1 };
+    let mut history = Vec::new();
+    history.push(ChongState::starting_state());
+    history.push(
+        ChongState::starting_state()
+            .next_state(&ChongAction { piece: ChongPiece::Pawn, r: 1, c: 3 }));
 
-    // println!("{:?}", start.is_legal(&action, &[]));
-    // println!("{:?}", start.next_state(&action));
+    let serialized = serde_json::to_string(&history).unwrap();
+    println!("serialized = {}", serialized);
+
+    let deserialized: Vec<ChongState> = serde_json::from_str(&serialized).unwrap();
+    println!("deserialized = {:?}", deserialized);
 }
 
 
