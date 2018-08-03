@@ -105,16 +105,16 @@ impl ChongState {
 
         ((pawn >> 8) |
          (pawn << 8) |
-         ((pawn & 0xfefefefefefefefe) >> 1) |
-         ((pawn & 0x7f7f7f7f7f7f7f7f) << 1) |
+         ((pawn & 0xfefe_fefe_fefe_fefe) >> 1) |
+         ((pawn & 0x7f7f_7f7f_7f7f_7f7f) << 1) |
          (((pawn >> 8) & stones) >> 8) |
          (((pawn << 8) & stones) << 8) |
-         ((((pawn & 0xfcfcfcfcfcfcfcfc) >> 1) & stones) >> 1) |
-         ((((pawn & 0xfcfcfcfcfcfcfcfc) << 7) & stones) << 7) |
-         ((((pawn & 0xfcfcfcfcfcfcfcfc) >> 9) & stones) >> 9) |
-         ((((pawn & 0x3f3f3f3f3f3f3f3f) << 1) & stones) << 1) |
-         ((((pawn & 0x3f3f3f3f3f3f3f3f) >> 7) & stones) >> 7) |
-         ((((pawn & 0x3f3f3f3f3f3f3f3f) << 9) & stones) << 9)) & !occupied
+         ((((pawn & 0xfcfc_fcfc_fcfc_fcfc) >> 1) & stones) >> 1) |
+         ((((pawn & 0xfcfc_fcfc_fcfc_fcfc) << 7) & stones) << 7) |
+         ((((pawn & 0xfcfc_fcfc_fcfc_fcfc) >> 9) & stones) >> 9) |
+         ((((pawn & 0x3f3f_3f3f_3f3f_3f3f) << 1) & stones) << 1) |
+         ((((pawn & 0x3f3f_3f3f_3f3f_3f3f) >> 7) & stones) >> 7) |
+         ((((pawn & 0x3f3f_3f3f_3f3f_3f3f) << 9) & stones) << 9)) & !occupied
     }
 
     fn build_state(pawn1: (u8, u8), pawn2: (u8, u8),
@@ -211,7 +211,7 @@ impl BoardState<ChongAction, ChongPlayer> for ChongState {
 
         let valid_stones = match self.stones_remaining(self.next) {
             0 => 0,
-            _ => !occupied & 0x00ffffffffffff00
+            _ => !occupied & 0x00ff_ffff_ffff_ff00
         };
 
         let valid_pawns = self.pawn_mask();
@@ -239,9 +239,9 @@ impl BoardState<ChongAction, ChongPlayer> for ChongState {
             Some(x) => x
         };
 
-        if current_state.pawn1 & 0xff00000000000000 != 0 { return true }
-        if current_state.pawn2 & 0x00000000000000ff != 0 { return true }
-        if self.legal_actions(history).len() == 0 { return true }
+        if current_state.pawn1 & 0xff00_0000_0000_0000 != 0 { return true }
+        if current_state.pawn2 & 0x0000_0000_0000_00ff != 0 { return true }
+        if self.legal_actions(history).is_empty() { return true }
         if history.iter().filter(|&s| s == current_state).count() >= 3 { return true }
 
         false
