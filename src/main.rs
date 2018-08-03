@@ -265,12 +265,21 @@ fn run_simulation(current: &ChongState, history: &[ChongState],
 
         let legal_actions = current.legal_actions(&history);
         let actions_states = legal_actions.into_iter()
-            .map(|a| (a, current.next_state(&a)))
+            .map(|a| {
+                let s = current.next_state(&a);
+                let e = table.get(&s);
+                (a, s, e)
+            })
             .collect::<Vec<_>>();
 
         // if all actions_states are in the table
         //   calculate the preferred move using the formula
-        if actions_states.iter().all(|(a, s)| table.contains_key(s)) {}
+        if actions_states.iter().all(|(_a, _s, e)| e.is_some()) {
+            let log_total = actions_states.iter()
+                .map(|(_a, _s, e)| e.unwrap().visits as f64)
+                .sum::<f64>()
+                .ln();
+        }
         // if no nodes have been expanded
         //   expand the nodes and choose
         else if expand { let expand = false; }
