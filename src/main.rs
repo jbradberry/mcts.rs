@@ -6,6 +6,7 @@ extern crate serde_json;
 
 
 use std::cmp;
+use std::collections::HashMap;
 use std::io;
 use std::io::prelude::*;
 
@@ -33,14 +34,14 @@ pub trait BoardState<A: BoardAction, P: BoardPlayer> {
 }
 
 
-#[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub enum ChongPlayer {
     Player1,
     Player2
 }
 
 
-#[derive(Debug, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub struct ChongState {
     pawn1: u64,
     pawn2: u64,
@@ -50,14 +51,14 @@ pub struct ChongState {
 }
 
 
-#[derive(Debug, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize)]
 pub enum ChongPiece {
     Pawn,
     Stone
 }
 
 
-#[derive(Debug, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize)]
 pub struct ChongAction {
     piece: ChongPiece,
     r: u8,
@@ -248,21 +249,67 @@ impl BoardState<ChongAction, ChongPlayer> for ChongState {
 }
 
 
+pub struct Stats {
+    value: i64,
+    visits: u64,
+}
+
+
+fn run_simulation(current: &ChongState, history: &[ChongState],
+                  table: &mut HashMap<ChongState, Stats>) {
+    let mut moves: u32 = 0;
+    let expand = true;
+    loop {
+        if current.is_ended(&history) { break; }
+        if moves > 100 { break; }
+
+        let legal_actions = current.legal_actions(&history);
+        let actions_states = legal_actions.into_iter()
+            .map(|a| (a, current.next_state(&a)))
+            .collect::<Vec<_>>();
+
+        // if all actions_states are in the table
+        //   calculate the preferred move using the formula
+        if actions_states.iter().all(|(a, s)| table.contains_key(s)) {}
+        // if no nodes have been expanded
+        //   expand the nodes and choose
+        else if expand { let expand = false; }
+        // otherwise, randomly choose the move, perhaps weighted by an algorithm
+        else {}
+
+
+        moves += 1;
+    }
+}
+
+
+fn mcts(current: &ChongState, history: &[ChongState]) -> bool {
+    let mut games: u32 = 0;
+    let mut table = HashMap::new();
+    loop {
+        if games > 1_000 { break; }
+        run_simulation(&current, &history, &mut table);
+        games += 1;
+    }
+
+    true
+}
+
+
 fn main() {
     let mut buffer = String::new();
 
     io::stdin().read_to_string(&mut buffer)
                .expect("Failed to read input.");
 
-    let deserialized: Vec<ChongState> = serde_json::from_str(&buffer).unwrap();
-    println!("deserialized = {:?}", deserialized);
-
-    let current_state = match deserialized.last() {
+    let history: Vec<ChongState> = serde_json::from_str(&buffer).unwrap();
+    let current_state = match history.last() {
         None => return,
         Some(x) => x,
     };
 
-    println!("legal actions = {:?}", current_state.legal_actions(&deserialized));
+    let result = mcts(&current_state, &history);
+    println!("result = {}", result);
 }
 
 
