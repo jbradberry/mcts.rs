@@ -7,6 +7,7 @@ extern crate serde_json;
 
 use std::cmp;
 use std::collections::HashMap;
+use std::f64;
 use std::io;
 use std::io::prelude::*;
 
@@ -258,7 +259,7 @@ pub struct Stats {
 fn run_simulation(current: &ChongState, history: &[ChongState],
                   table: &mut HashMap<ChongState, Stats>) {
     let mut moves: u32 = 0;
-    let expand = true;
+    let mut expand = true;
     loop {
         if current.is_ended(&history) { break; }
         if moves > 100 { break; }
@@ -279,13 +280,27 @@ fn run_simulation(current: &ChongState, history: &[ChongState],
                 .map(|(_a, _s, e)| e.unwrap().visits as f64)
                 .sum::<f64>()
                 .ln();
+            if log_total.is_infinite() {
+                let log_total = 0.0_f64;
+            }
+            let values_actions = actions_states.iter()
+                .map(|(a, s, e)| {
+                    let stat = e.unwrap();
+                    let v = stat.value as f64 / cmp::max(stat.visits, 1) as f64 +
+                        1.4 * (log_total / cmp::max(stat.visits, 1) as f64).sqrt();
+                    (a, s, v)
+                })
+                .collect::<Vec<_>>();
+            let max_value = values_actions.iter()
+                .fold(f64::NAN, |acc, (_a, _s, v)| acc.max(*v));
         }
-        // if no nodes have been expanded
-        //   expand the nodes and choose
-        else if expand { let expand = false; }
-        // otherwise, randomly choose the move, perhaps weighted by an algorithm
-        else {}
-
+        else {
+            // if no nodes have been expanded, expand the nodes
+            if expand {
+                expand = false;
+            }
+            // randomly choose the move, perhaps weighted by an algorithm
+        }
 
         moves += 1;
     }
