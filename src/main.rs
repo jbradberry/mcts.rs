@@ -1,3 +1,5 @@
+#![feature(nll)]
+
 #[macro_use]
 extern crate serde_derive;
 
@@ -42,7 +44,7 @@ pub enum ChongPlayer {
 }
 
 
-#[derive(Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub struct ChongState {
     pawn1: u64,
     pawn2: u64,
@@ -250,6 +252,7 @@ impl BoardState<ChongAction, ChongPlayer> for ChongState {
 }
 
 
+#[derive(Debug, Copy, Clone)]
 pub struct Stats {
     value: i64,
     visits: u64,
@@ -266,38 +269,35 @@ fn run_simulation(current: &ChongState, history: &[ChongState],
 
         let legal_actions = current.legal_actions(&history);
         let actions_states = legal_actions.into_iter()
-            .map(|a| {
-                let s = current.next_state(&a);
-                let e = table.get(&s);
-                (a, s, e)
-            })
+            .map(|a| (a, current.next_state(&a)))
             .collect::<Vec<_>>();
         if expand {
             // if not all of the child nodes are present, expand the nodes
-            if !actions_states.iter().all(|(_a, _s, e)| e.is_some()) {
-                // let actions_states = actions_states.into_iter()
-                //     .map(|(a, s, e)|
-                //          (a, s, Some(&*table.entry(s).or_insert(Stats { value: 0, visits: 0 }))))
-                //     .collect::<Vec<_>>();
-                actions_states.iter()
-                    .map(|(a, s, e)| {
-                        table.entry(*s).or_insert(Stats { value: 0, visits: 0 });
-                    });
+            if !actions_states.iter().all(|(_a, s)| table.contains_key(&s)) {
+                for (_a, s) in actions_states.iter() {
+                    table.entry(*s).or_insert_with(|| Stats { value: 0, visits: 0 });
+                }
                 expand = false;
             }
 
-            let log_total = actions_states.iter()
-                .map(|(_a, _s, e)| e.unwrap().visits as f64)
+            let actions_statistics = actions_states.into_iter()
+                .map(|(a, s)| {
+                    let e = table.get(&s).unwrap();
+                    (a, s, e)
+                })
+                .collect::<Vec<_>>();
+
+            let log_total = actions_statistics.iter()
+                .map(|(_a, _s, e)| e.visits as f64)
                 .sum::<f64>()
                 .ln();
             if log_total.is_infinite() {
                 let log_total = 0.0_f64;
             }
-            let values_actions = actions_states.iter()
+            let values_actions = actions_statistics.iter()
                 .map(|(a, s, e)| {
-                    let stat = e.unwrap();
-                    let v = stat.value as f64 / cmp::max(stat.visits, 1) as f64 +
-                        1.4 * (log_total / cmp::max(stat.visits, 1) as f64).sqrt();
+                    let v = e.value as f64 / cmp::max(e.visits, 1) as f64 +
+                        1.4 * (log_total / cmp::max(e.visits, 1) as f64).sqrt();
                     (a, s, v)
                 })
                 .collect::<Vec<_>>();
