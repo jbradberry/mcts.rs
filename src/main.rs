@@ -272,10 +272,20 @@ fn run_simulation(current: &ChongState, history: &[ChongState],
                 (a, s, e)
             })
             .collect::<Vec<_>>();
+        if expand {
+            // if not all of the child nodes are present, expand the nodes
+            if !actions_states.iter().all(|(_a, _s, e)| e.is_some()) {
+                // let actions_states = actions_states.into_iter()
+                //     .map(|(a, s, e)|
+                //          (a, s, Some(&*table.entry(s).or_insert(Stats { value: 0, visits: 0 }))))
+                //     .collect::<Vec<_>>();
+                actions_states.iter()
+                    .map(|(a, s, e)| {
+                        table.entry(*s).or_insert(Stats { value: 0, visits: 0 });
+                    });
+                expand = false;
+            }
 
-        // if all actions_states are in the table
-        //   calculate the preferred move using the formula
-        if actions_states.iter().all(|(_a, _s, e)| e.is_some()) {
             let log_total = actions_states.iter()
                 .map(|(_a, _s, e)| e.unwrap().visits as f64)
                 .sum::<f64>()
@@ -293,14 +303,15 @@ fn run_simulation(current: &ChongState, history: &[ChongState],
                 .collect::<Vec<_>>();
             let max_value = values_actions.iter()
                 .fold(f64::NAN, |acc, (_a, _s, v)| acc.max(*v));
+            let choices = values_actions.into_iter()
+                .filter(|x| x.2 == max_value)
+                .collect::<Vec<_>>();
         }
         else {
-            // if no nodes have been expanded, expand the nodes
-            if expand {
-                expand = false;
-            }
-            // randomly choose the move, perhaps weighted by an algorithm
+
         }
+
+        // TODO: randomly choose the move, perhaps weighted by an algorithm
 
         moves += 1;
     }
