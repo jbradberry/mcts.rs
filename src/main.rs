@@ -6,12 +6,16 @@ extern crate serde_derive;
 extern crate serde;
 extern crate serde_json;
 
+extern crate rand;
+
 
 use std::cmp;
 use std::collections::HashMap;
 use std::f64;
 use std::io;
 use std::io::prelude::*;
+
+use rand::{thread_rng, Rng};
 
 
 pub trait BoardPlayer {}
@@ -263,6 +267,7 @@ fn run_simulation(current: &ChongState, history: &[ChongState],
                   table: &mut HashMap<ChongState, Stats>) {
     let mut moves: u32 = 0;
     let mut expand = true;
+    let mut rng = thread_rng();
     loop {
         if current.is_ended(&history) { break; }
         if moves > 100 { break; }
@@ -287,12 +292,12 @@ fn run_simulation(current: &ChongState, history: &[ChongState],
                 })
                 .collect::<Vec<_>>();
 
-            let log_total = actions_statistics.iter()
+            let mut log_total = actions_statistics.iter()
                 .map(|(_a, _s, e)| e.visits as f64)
                 .sum::<f64>()
                 .ln();
             if log_total.is_infinite() {
-                let log_total = 0.0_f64;
+                log_total = 0.0_f64;
             }
             let values_actions = actions_statistics.iter()
                 .map(|(a, s, e)| {
@@ -303,15 +308,21 @@ fn run_simulation(current: &ChongState, history: &[ChongState],
                 .collect::<Vec<_>>();
             let max_value = values_actions.iter()
                 .fold(f64::NAN, |acc, (_a, _s, v)| acc.max(*v));
-            let choices = values_actions.into_iter()
+            let choices = values_actions.iter()
                 .filter(|x| x.2 == max_value)
                 .collect::<Vec<_>>();
+            let choice = rng.choose(&choices);
+            let current = choice.unwrap().1;
         }
         else {
-
+            let choices = actions_states.iter()
+                .map(|(a, s)| (a, s, 0.0))
+                .collect::<Vec<_>>();
+            let choice = rng.choose(&choices);
+            let current = choice.unwrap().1;
         }
 
-        // TODO: randomly choose the move, perhaps weighted by an algorithm
+        // randomly choose the move, perhaps weighted by an algorithm
 
         moves += 1;
     }
