@@ -263,16 +263,19 @@ pub struct Stats {
 }
 
 
-fn run_simulation(current: &ChongState, history: &[ChongState],
+fn run_simulation(mut current: &ChongState, history: &[ChongState],
                   table: &mut HashMap<ChongState, Stats>) {
+    let mut history_copy = history.to_vec();
+    let mut visited_states = vec![];
+
     let mut moves: u32 = 0;
     let mut expand = true;
     let mut rng = thread_rng();
     loop {
-        if current.is_ended(&history) { break; }
+        if current.is_ended(&history_copy) { break; }
         if moves > 100 { break; }
 
-        let legal_actions = current.legal_actions(&history);
+        let legal_actions = current.legal_actions(&history_copy);
         let actions_states = legal_actions.into_iter()
             .map(|a| (a, current.next_state(&a)))
             .collect::<Vec<_>>();
@@ -306,23 +309,26 @@ fn run_simulation(current: &ChongState, history: &[ChongState],
                     (a, s, v)
                 })
                 .collect::<Vec<_>>();
+            // choose the move from amongst the subset of actions with maximum UCT value
             let max_value = values_actions.iter()
                 .fold(f64::NAN, |acc, (_a, _s, v)| acc.max(*v));
-            let choices = values_actions.iter()
+            let stat_choices = values_actions.iter()
                 .filter(|x| x.2 == max_value)
                 .collect::<Vec<_>>();
-            let choice = rng.choose(&choices);
-            let current = choice.unwrap().1;
+            let choice = rng.choose(&stat_choices);
+            current = choice.unwrap().1;
+            history_copy.push(*current);
+            visited_states.push(*current);
         }
         else {
-            let choices = actions_states.iter()
+            // randomly choose the move, perhaps weighted by an algorithm
+            let rand_choices = actions_states.iter()
                 .map(|(a, s)| (a, s, 0.0))
                 .collect::<Vec<_>>();
-            let choice = rng.choose(&choices);
-            let current = choice.unwrap().1;
+            let choice = rng.choose(&rand_choices);
+            current = choice.unwrap().1;
+            history_copy.push(*current);
         }
-
-        // randomly choose the move, perhaps weighted by an algorithm
 
         moves += 1;
     }
