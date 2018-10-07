@@ -173,7 +173,7 @@ impl BoardState<ChongAction, ChongPlayer> for ChongState {
 
     fn next_state(&self, action: &ChongAction) -> Self {
         let player = self.current_player();
-        let value = 1 << (action.r * 8 + action.c);
+        let value = Self::coordinate_mask(action.r, action.c);
         match action {
             ChongAction { piece: ChongPiece::Pawn, .. } =>
                 match player {
@@ -197,7 +197,7 @@ impl BoardState<ChongAction, ChongPlayer> for ChongState {
         if action.c >= 8 { return false }
 
         let occupied = self.pawn1 | self.pawn2 | self.stones1 | self.stones2;
-        let value = 1 << (action.r * 8 + action.c);
+        let value = Self::coordinate_mask(action.r, action.c);
 
         if value & occupied != 0 { return false }
 
@@ -392,7 +392,21 @@ mod tests {
             ChongAction { piece: ChongPiece::Pawn, r: 3, c: 3 },
             ChongAction { piece: ChongPiece::Pawn, r: 3, c: 5 },
             ChongAction { piece: ChongPiece::Pawn, r: 4, c: 4 }
-        ]);
+            ]);
+
+        let resulting_states = legal_actions.iter()
+            .map(|a| position.next_state(&a))
+            .collect::<Vec<_>>();
+        assert_eq!(resulting_states, [
+            ChongState { pawn1: ChongState::coordinate_mask(2, 4), pawn2: position.pawn2,
+                         stones1: position.stones1, stones2: position.stones2, next: ChongPlayer::Player2 },
+            ChongState { pawn1: ChongState::coordinate_mask(3, 3), pawn2: position.pawn2,
+                         stones1: position.stones1, stones2: position.stones2, next: ChongPlayer::Player2 },
+            ChongState { pawn1: ChongState::coordinate_mask(3, 5), pawn2: position.pawn2,
+                         stones1: position.stones1, stones2: position.stones2, next: ChongPlayer::Player2 },
+            ChongState { pawn1: ChongState::coordinate_mask(4, 4), pawn2: position.pawn2,
+                         stones1: position.stones1, stones2: position.stones2, next: ChongPlayer::Player2 }
+            ]);
     }
 
     #[test]
@@ -418,6 +432,18 @@ mod tests {
             ChongAction { piece: ChongPiece::Pawn, r: 0, c: 4 },
             ChongAction { piece: ChongPiece::Pawn, r: 1, c: 3 }
         ]);
+
+        let resulting_states = legal_actions.iter()
+            .map(|a| position.next_state(&a))
+            .collect::<Vec<_>>();
+        assert_eq!(resulting_states, [
+            ChongState { pawn1: ChongState::coordinate_mask(0, 2), pawn2: position.pawn2,
+                         stones1: position.stones1, stones2: position.stones2, next: ChongPlayer::Player2 },
+            ChongState { pawn1: ChongState::coordinate_mask(0, 4), pawn2: position.pawn2,
+                         stones1: position.stones1, stones2: position.stones2, next: ChongPlayer::Player2 },
+            ChongState { pawn1: ChongState::coordinate_mask(1, 3), pawn2: position.pawn2,
+                         stones1: position.stones1, stones2: position.stones2, next: ChongPlayer::Player2 }
+            ]);
     }
 
     #[test]
@@ -443,6 +469,18 @@ mod tests {
             ChongAction { piece: ChongPiece::Pawn, r: 7, c: 3 },
             ChongAction { piece: ChongPiece::Pawn, r: 7, c: 5 }
         ]);
+
+        let resulting_states = legal_actions.iter()
+            .map(|a| position.next_state(&a))
+            .collect::<Vec<_>>();
+        assert_eq!(resulting_states, [
+            ChongState { pawn1: ChongState::coordinate_mask(6, 4), pawn2: position.pawn2,
+                         stones1: position.stones1, stones2: position.stones2, next: ChongPlayer::Player2 },
+            ChongState { pawn1: ChongState::coordinate_mask(7, 3), pawn2: position.pawn2,
+                         stones1: position.stones1, stones2: position.stones2, next: ChongPlayer::Player2 },
+            ChongState { pawn1: ChongState::coordinate_mask(7, 5), pawn2: position.pawn2,
+                         stones1: position.stones1, stones2: position.stones2, next: ChongPlayer::Player2 }
+            ]);
     }
 
     #[test]
@@ -468,6 +506,18 @@ mod tests {
             ChongAction { piece: ChongPiece::Pawn, r: 2, c: 1 },
             ChongAction { piece: ChongPiece::Pawn, r: 3, c: 0 }
         ]);
+
+        let resulting_states = legal_actions.iter()
+            .map(|a| position.next_state(&a))
+            .collect::<Vec<_>>();
+        assert_eq!(resulting_states, [
+            ChongState { pawn1: ChongState::coordinate_mask(1, 0), pawn2: position.pawn2,
+                         stones1: position.stones1, stones2: position.stones2, next: ChongPlayer::Player2 },
+            ChongState { pawn1: ChongState::coordinate_mask(2, 1), pawn2: position.pawn2,
+                         stones1: position.stones1, stones2: position.stones2, next: ChongPlayer::Player2 },
+            ChongState { pawn1: ChongState::coordinate_mask(3, 0), pawn2: position.pawn2,
+                         stones1: position.stones1, stones2: position.stones2, next: ChongPlayer::Player2 }
+            ]);
     }
 
     #[test]
@@ -493,6 +543,18 @@ mod tests {
             ChongAction { piece: ChongPiece::Pawn, r: 5, c: 6 },
             ChongAction { piece: ChongPiece::Pawn, r: 6, c: 7 }
         ]);
+
+        let resulting_states = legal_actions.iter()
+            .map(|a| position.next_state(&a))
+            .collect::<Vec<_>>();
+        assert_eq!(resulting_states, [
+            ChongState { pawn1: ChongState::coordinate_mask(4, 7), pawn2: position.pawn2,
+                         stones1: position.stones1, stones2: position.stones2, next: ChongPlayer::Player2 },
+            ChongState { pawn1: ChongState::coordinate_mask(5, 6), pawn2: position.pawn2,
+                         stones1: position.stones1, stones2: position.stones2, next: ChongPlayer::Player2 },
+            ChongState { pawn1: ChongState::coordinate_mask(6, 7), pawn2: position.pawn2,
+                         stones1: position.stones1, stones2: position.stones2, next: ChongPlayer::Player2 }
+            ]);
     }
 
     #[test]
@@ -517,6 +579,16 @@ mod tests {
             ChongAction { piece: ChongPiece::Pawn, r: 0, c: 1 },
             ChongAction { piece: ChongPiece::Pawn, r: 1, c: 0 }
         ]);
+
+        let resulting_states = legal_actions.iter()
+            .map(|a| position.next_state(&a))
+            .collect::<Vec<_>>();
+        assert_eq!(resulting_states, [
+            ChongState { pawn1: ChongState::coordinate_mask(0, 1), pawn2: position.pawn2,
+                         stones1: position.stones1, stones2: position.stones2, next: ChongPlayer::Player2 },
+            ChongState { pawn1: ChongState::coordinate_mask(1, 0), pawn2: position.pawn2,
+                         stones1: position.stones1, stones2: position.stones2, next: ChongPlayer::Player2 }
+            ]);
     }
 
     #[test]
@@ -541,6 +613,16 @@ mod tests {
             ChongAction { piece: ChongPiece::Pawn, r: 0, c: 6 },
             ChongAction { piece: ChongPiece::Pawn, r: 1, c: 7 }
         ]);
+
+        let resulting_states = legal_actions.iter()
+            .map(|a| position.next_state(&a))
+            .collect::<Vec<_>>();
+        assert_eq!(resulting_states, [
+            ChongState { pawn1: ChongState::coordinate_mask(0, 6), pawn2: position.pawn2,
+                         stones1: position.stones1, stones2: position.stones2, next: ChongPlayer::Player2 },
+            ChongState { pawn1: ChongState::coordinate_mask(1, 7), pawn2: position.pawn2,
+                         stones1: position.stones1, stones2: position.stones2, next: ChongPlayer::Player2 }
+            ]);
     }
 
     #[test]
@@ -565,6 +647,16 @@ mod tests {
             ChongAction { piece: ChongPiece::Pawn, r: 6, c: 0 },
             ChongAction { piece: ChongPiece::Pawn, r: 7, c: 1 }
         ]);
+
+        let resulting_states = legal_actions.iter()
+            .map(|a| position.next_state(&a))
+            .collect::<Vec<_>>();
+        assert_eq!(resulting_states, [
+            ChongState { pawn1: ChongState::coordinate_mask(6, 0), pawn2: position.pawn2,
+                         stones1: position.stones1, stones2: position.stones2, next: ChongPlayer::Player2 },
+            ChongState { pawn1: ChongState::coordinate_mask(7, 1), pawn2: position.pawn2,
+                         stones1: position.stones1, stones2: position.stones2, next: ChongPlayer::Player2 }
+            ]);
     }
 
     #[test]
@@ -589,6 +681,16 @@ mod tests {
             ChongAction { piece: ChongPiece::Pawn, r: 6, c: 7 },
             ChongAction { piece: ChongPiece::Pawn, r: 7, c: 6 }
         ]);
+
+        let resulting_states = legal_actions.iter()
+            .map(|a| position.next_state(&a))
+            .collect::<Vec<_>>();
+        assert_eq!(resulting_states, [
+            ChongState { pawn1: ChongState::coordinate_mask(6, 7), pawn2: position.pawn2,
+                         stones1: position.stones1, stones2: position.stones2, next: ChongPlayer::Player2 },
+            ChongState { pawn1: ChongState::coordinate_mask(7, 6), pawn2: position.pawn2,
+                         stones1: position.stones1, stones2: position.stones2, next: ChongPlayer::Player2 }
+            ]);
     }
 
     #[test]
@@ -620,6 +722,28 @@ mod tests {
             ChongAction { piece: ChongPiece::Pawn, r: 5, c: 4 },
             ChongAction { piece: ChongPiece::Pawn, r: 5, c: 6 }
         ]);
+
+        let resulting_states = legal_actions.iter()
+            .map(|a| position.next_state(&a))
+            .collect::<Vec<_>>();
+        assert_eq!(resulting_states, [
+            ChongState { pawn1: ChongState::coordinate_mask(1, 2), pawn2: position.pawn2,
+                         stones1: position.stones1, stones2: position.stones2, next: ChongPlayer::Player2 },
+            ChongState { pawn1: ChongState::coordinate_mask(1, 4), pawn2: position.pawn2,
+                         stones1: position.stones1, stones2: position.stones2, next: ChongPlayer::Player2 },
+            ChongState { pawn1: ChongState::coordinate_mask(1, 6), pawn2: position.pawn2,
+                         stones1: position.stones1, stones2: position.stones2, next: ChongPlayer::Player2 },
+            ChongState { pawn1: ChongState::coordinate_mask(3, 2), pawn2: position.pawn2,
+                         stones1: position.stones1, stones2: position.stones2, next: ChongPlayer::Player2 },
+            ChongState { pawn1: ChongState::coordinate_mask(3, 6), pawn2: position.pawn2,
+                         stones1: position.stones1, stones2: position.stones2, next: ChongPlayer::Player2 },
+            ChongState { pawn1: ChongState::coordinate_mask(5, 2), pawn2: position.pawn2,
+                         stones1: position.stones1, stones2: position.stones2, next: ChongPlayer::Player2 },
+            ChongState { pawn1: ChongState::coordinate_mask(5, 4), pawn2: position.pawn2,
+                         stones1: position.stones1, stones2: position.stones2, next: ChongPlayer::Player2 },
+            ChongState { pawn1: ChongState::coordinate_mask(5, 6), pawn2: position.pawn2,
+                         stones1: position.stones1, stones2: position.stones2, next: ChongPlayer::Player2 }
+            ]);
     }
 
     #[test]
@@ -648,6 +772,22 @@ mod tests {
             ChongAction { piece: ChongPiece::Pawn, r: 2, c: 3 },
             ChongAction { piece: ChongPiece::Pawn, r: 2, c: 5 }
         ]);
+
+        let resulting_states = legal_actions.iter()
+            .map(|a| position.next_state(&a))
+            .collect::<Vec<_>>();
+        assert_eq!(resulting_states, [
+            ChongState { pawn1: ChongState::coordinate_mask(0, 1), pawn2: position.pawn2,
+                         stones1: position.stones1, stones2: position.stones2, next: ChongPlayer::Player2 },
+            ChongState { pawn1: ChongState::coordinate_mask(0, 5), pawn2: position.pawn2,
+                         stones1: position.stones1, stones2: position.stones2, next: ChongPlayer::Player2 },
+            ChongState { pawn1: ChongState::coordinate_mask(2, 1), pawn2: position.pawn2,
+                         stones1: position.stones1, stones2: position.stones2, next: ChongPlayer::Player2 },
+            ChongState { pawn1: ChongState::coordinate_mask(2, 3), pawn2: position.pawn2,
+                         stones1: position.stones1, stones2: position.stones2, next: ChongPlayer::Player2 },
+            ChongState { pawn1: ChongState::coordinate_mask(2, 5), pawn2: position.pawn2,
+                         stones1: position.stones1, stones2: position.stones2, next: ChongPlayer::Player2 }
+            ]);
     }
 
     #[test]
@@ -676,6 +816,22 @@ mod tests {
             ChongAction { piece: ChongPiece::Pawn, r: 7, c: 2 },
             ChongAction { piece: ChongPiece::Pawn, r: 7, c: 6 }
         ]);
+
+        let resulting_states = legal_actions.iter()
+            .map(|a| position.next_state(&a))
+            .collect::<Vec<_>>();
+        assert_eq!(resulting_states, [
+            ChongState { pawn1: ChongState::coordinate_mask(5, 2), pawn2: position.pawn2,
+                         stones1: position.stones1, stones2: position.stones2, next: ChongPlayer::Player2 },
+            ChongState { pawn1: ChongState::coordinate_mask(5, 4), pawn2: position.pawn2,
+                         stones1: position.stones1, stones2: position.stones2, next: ChongPlayer::Player2 },
+            ChongState { pawn1: ChongState::coordinate_mask(5, 6), pawn2: position.pawn2,
+                         stones1: position.stones1, stones2: position.stones2, next: ChongPlayer::Player2 },
+            ChongState { pawn1: ChongState::coordinate_mask(7, 2), pawn2: position.pawn2,
+                         stones1: position.stones1, stones2: position.stones2, next: ChongPlayer::Player2 },
+            ChongState { pawn1: ChongState::coordinate_mask(7, 6), pawn2: position.pawn2,
+                         stones1: position.stones1, stones2: position.stones2, next: ChongPlayer::Player2 }
+            ]);
     }
 
     #[test]
@@ -704,6 +860,22 @@ mod tests {
             ChongAction { piece: ChongPiece::Pawn, r: 5, c: 0 },
             ChongAction { piece: ChongPiece::Pawn, r: 5, c: 2 }
         ]);
+
+        let resulting_states = legal_actions.iter()
+            .map(|a| position.next_state(&a))
+            .collect::<Vec<_>>();
+        assert_eq!(resulting_states, [
+            ChongState { pawn1: ChongState::coordinate_mask(1, 0), pawn2: position.pawn2,
+                         stones1: position.stones1, stones2: position.stones2, next: ChongPlayer::Player2 },
+            ChongState { pawn1: ChongState::coordinate_mask(1, 2), pawn2: position.pawn2,
+                         stones1: position.stones1, stones2: position.stones2, next: ChongPlayer::Player2 },
+            ChongState { pawn1: ChongState::coordinate_mask(3, 2), pawn2: position.pawn2,
+                         stones1: position.stones1, stones2: position.stones2, next: ChongPlayer::Player2 },
+            ChongState { pawn1: ChongState::coordinate_mask(5, 0), pawn2: position.pawn2,
+                         stones1: position.stones1, stones2: position.stones2, next: ChongPlayer::Player2 },
+            ChongState { pawn1: ChongState::coordinate_mask(5, 2), pawn2: position.pawn2,
+                         stones1: position.stones1, stones2: position.stones2, next: ChongPlayer::Player2 }
+            ]);
     }
 
     #[test]
@@ -732,6 +904,22 @@ mod tests {
             ChongAction { piece: ChongPiece::Pawn, r: 6, c: 5 },
             ChongAction { piece: ChongPiece::Pawn, r: 6, c: 7 }
         ]);
+
+        let resulting_states = legal_actions.iter()
+            .map(|a| position.next_state(&a))
+            .collect::<Vec<_>>();
+        assert_eq!(resulting_states, [
+            ChongState { pawn1: ChongState::coordinate_mask(2, 5), pawn2: position.pawn2,
+                         stones1: position.stones1, stones2: position.stones2, next: ChongPlayer::Player2 },
+            ChongState { pawn1: ChongState::coordinate_mask(2, 7), pawn2: position.pawn2,
+                         stones1: position.stones1, stones2: position.stones2, next: ChongPlayer::Player2 },
+            ChongState { pawn1: ChongState::coordinate_mask(4, 5), pawn2: position.pawn2,
+                         stones1: position.stones1, stones2: position.stones2, next: ChongPlayer::Player2 },
+            ChongState { pawn1: ChongState::coordinate_mask(6, 5), pawn2: position.pawn2,
+                         stones1: position.stones1, stones2: position.stones2, next: ChongPlayer::Player2 },
+            ChongState { pawn1: ChongState::coordinate_mask(6, 7), pawn2: position.pawn2,
+                         stones1: position.stones1, stones2: position.stones2, next: ChongPlayer::Player2 }
+            ]);
     }
 
     #[test]
@@ -758,6 +946,18 @@ mod tests {
             ChongAction { piece: ChongPiece::Pawn, r: 2, c: 0 },
             ChongAction { piece: ChongPiece::Pawn, r: 2, c: 2 }
         ]);
+
+        let resulting_states = legal_actions.iter()
+            .map(|a| position.next_state(&a))
+            .collect::<Vec<_>>();
+        assert_eq!(resulting_states, [
+            ChongState { pawn1: ChongState::coordinate_mask(0, 2), pawn2: position.pawn2,
+                         stones1: position.stones1, stones2: position.stones2, next: ChongPlayer::Player2 },
+            ChongState { pawn1: ChongState::coordinate_mask(2, 0), pawn2: position.pawn2,
+                         stones1: position.stones1, stones2: position.stones2, next: ChongPlayer::Player2 },
+            ChongState { pawn1: ChongState::coordinate_mask(2, 2), pawn2: position.pawn2,
+                         stones1: position.stones1, stones2: position.stones2, next: ChongPlayer::Player2 }
+            ]);
     }
 
     #[test]
@@ -784,6 +984,18 @@ mod tests {
             ChongAction { piece: ChongPiece::Pawn, r: 2, c: 5 },
             ChongAction { piece: ChongPiece::Pawn, r: 2, c: 7 }
         ]);
+
+        let resulting_states = legal_actions.iter()
+            .map(|a| position.next_state(&a))
+            .collect::<Vec<_>>();
+        assert_eq!(resulting_states, [
+            ChongState { pawn1: ChongState::coordinate_mask(0, 5), pawn2: position.pawn2,
+                         stones1: position.stones1, stones2: position.stones2, next: ChongPlayer::Player2 },
+            ChongState { pawn1: ChongState::coordinate_mask(2, 5), pawn2: position.pawn2,
+                         stones1: position.stones1, stones2: position.stones2, next: ChongPlayer::Player2 },
+            ChongState { pawn1: ChongState::coordinate_mask(2, 7), pawn2: position.pawn2,
+                         stones1: position.stones1, stones2: position.stones2, next: ChongPlayer::Player2 }
+            ]);
     }
 
     #[test]
@@ -810,6 +1022,18 @@ mod tests {
             ChongAction { piece: ChongPiece::Pawn, r: 5, c: 2 },
             ChongAction { piece: ChongPiece::Pawn, r: 7, c: 2 }
         ]);
+
+        let resulting_states = legal_actions.iter()
+            .map(|a| position.next_state(&a))
+            .collect::<Vec<_>>();
+        assert_eq!(resulting_states, [
+            ChongState { pawn1: ChongState::coordinate_mask(5, 0), pawn2: position.pawn2,
+                         stones1: position.stones1, stones2: position.stones2, next: ChongPlayer::Player2 },
+            ChongState { pawn1: ChongState::coordinate_mask(5, 2), pawn2: position.pawn2,
+                         stones1: position.stones1, stones2: position.stones2, next: ChongPlayer::Player2 },
+            ChongState { pawn1: ChongState::coordinate_mask(7, 2), pawn2: position.pawn2,
+                         stones1: position.stones1, stones2: position.stones2, next: ChongPlayer::Player2 }
+            ]);
     }
 
     #[test]
@@ -836,5 +1060,17 @@ mod tests {
             ChongAction { piece: ChongPiece::Pawn, r: 5, c: 7 },
             ChongAction { piece: ChongPiece::Pawn, r: 7, c: 5 }
         ]);
+
+        let resulting_states = legal_actions.iter()
+            .map(|a| position.next_state(&a))
+            .collect::<Vec<_>>();
+        assert_eq!(resulting_states, [
+            ChongState { pawn1: ChongState::coordinate_mask(5, 5), pawn2: position.pawn2,
+                         stones1: position.stones1, stones2: position.stones2, next: ChongPlayer::Player2 },
+            ChongState { pawn1: ChongState::coordinate_mask(5, 7), pawn2: position.pawn2,
+                         stones1: position.stones1, stones2: position.stones2, next: ChongPlayer::Player2 },
+            ChongState { pawn1: ChongState::coordinate_mask(7, 5), pawn2: position.pawn2,
+                         stones1: position.stones1, stones2: position.stones2, next: ChongPlayer::Player2 }
+            ]);
     }
 }
