@@ -36,6 +36,8 @@ pub trait BoardState<A: BoardAction, P: BoardPlayer> {
     fn legal_actions(&self, history: &[Self]) -> Vec<A> where Self: Sized;
 
     fn is_ended(&self, history: &[Self]) -> bool where Self: Sized;
+
+    fn win_values(&self, history: &[Self]) -> Option<Vec<f64>> where Self: Sized;
 }
 
 
@@ -245,12 +247,33 @@ impl BoardState<ChongAction, ChongPlayer> for ChongState {
 
         false
     }
+
+    fn win_values(&self, history: &[ChongState]) -> Option<Vec<f64>> {
+        if !self.is_ended(&history) { return None; }
+
+        let values;
+        if self.pawn1 & 0xff00_0000_0000_0000 != 0 {
+            values = vec![1.0, 0.0];
+        } else if self.pawn2 & 0x0000_0000_0000_00ff != 0 {
+            values = vec![0.0, 1.0];
+        } else if self.legal_actions(&history).is_empty() {
+            values = match self.next {
+                ChongPlayer::Player1 => vec![0.0, 1.0],
+                ChongPlayer::Player2 => vec![1.0, 0.0],
+            }
+        } else if history.iter().filter(|&s| s == self).count() >= 3 {
+            values = vec![0.5, 0.5];
+        } else {
+            unreachable!();
+        }
+        Some(values)
+    }
 }
 
 
 #[derive(Debug, Copy, Clone)]
 pub struct Stats {
-    value: i64,
+    value: f64,
     visits: u64,
 }
 
@@ -276,7 +299,7 @@ fn run_simulation(state: &ChongState, history: &[ChongState],
             // if not all of the child nodes are present, expand the nodes
             if !actions_states.iter().all(|(_a, s)| table.contains_key(&s)) {
                 for (_a, s) in actions_states.iter() {
-                    table.entry(*s).or_insert_with(|| Stats { value: 0, visits: 0 });
+                    table.entry(*s).or_insert_with(|| Stats { value: 0.0, visits: 0 });
                 }
                 expand = false;
             }
@@ -298,7 +321,7 @@ fn run_simulation(state: &ChongState, history: &[ChongState],
             let values_actions = actions_statistics
                 .into_iter()
                 .map(|(a, s, e)| {
-                    let v = e.value as f64 / cmp::max(e.visits, 1) as f64 +
+                    let v = e.value / cmp::max(e.visits, 1) as f64 +
                         1.4 * (log_total / cmp::max(e.visits, 1) as f64).sqrt();
                     (a, s, v)
                 })
@@ -327,6 +350,21 @@ fn run_simulation(state: &ChongState, history: &[ChongState],
 
         moves += 1;
     }
+
+    let win_values = match current.win_values(&history_copy) {
+        Some(values) => values,
+        None => return,
+    };
+    for state in visited_states {
+        table.entry(state).and_modify(|e| {
+            e.visits += 1;
+            let player = state.current_player();
+            e.value += match player {
+                ChongPlayer::Player1 => win_values[1],
+                ChongPlayer::Player2 => win_values[0],
+            }
+        });
+    };
 }
 
 
