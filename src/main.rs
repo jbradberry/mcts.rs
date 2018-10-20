@@ -172,21 +172,15 @@ impl BoardState<ChongAction, ChongPlayer> for ChongState {
     fn next_state(&self, action: &ChongAction) -> Self {
         let player = self.current_player();
         let value = Self::coordinate_mask(action.r, action.c);
-        match action {
-            ChongAction { piece: ChongPiece::Pawn, .. } =>
-                match player {
-                    ChongPlayer::Player1 =>
-                        Self { pawn1: value, next: self.next.next_player(), ..*self },
-                    ChongPlayer::Player2 =>
-                        Self { pawn2: value, next: self.next.next_player(), ..*self },
-                }
-            ChongAction { piece: ChongPiece::Stone, .. } =>
-                match player {
-                    ChongPlayer::Player1 =>
-                        Self { stones1: value, next: self.next.next_player(), ..*self },
-                    ChongPlayer::Player2 =>
-                        Self { stones2: value, next: self.next.next_player(), ..*self },
-                }
+        match (action, player) {
+            (ChongAction { piece: ChongPiece::Pawn, .. }, ChongPlayer::Player1) =>
+                Self { pawn1: value, next: self.next.next_player(), ..*self },
+            (ChongAction { piece: ChongPiece::Pawn, .. }, ChongPlayer::Player2) =>
+                Self { pawn2: value, next: self.next.next_player(), ..*self },
+            (ChongAction { piece: ChongPiece::Stone, .. }, ChongPlayer::Player1) =>
+                Self { stones1: value, next: self.next.next_player(), ..*self },
+            (ChongAction { piece: ChongPiece::Stone, .. }, ChongPlayer::Player2) =>
+                Self { stones2: value, next: self.next.next_player(), ..*self },
         }
     }
 
