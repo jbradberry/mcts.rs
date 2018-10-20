@@ -1,5 +1,3 @@
-#![feature(nll)]
-
 #[macro_use]
 extern crate serde_derive;
 
@@ -342,10 +340,11 @@ pub struct Stats {
 }
 
 fn run_simulation(
-    mut current: &ChongState,
+    state: &ChongState,
     history: &[ChongState],
     table: &mut HashMap<ChongState, Stats>,
 ) {
+    let mut current = state.clone();
     let mut history_copy = history.to_vec();
     let mut visited_states = vec![];
 
@@ -353,13 +352,13 @@ fn run_simulation(
     let mut expand = true;
     let mut rng = thread_rng();
     loop {
-        assert_eq!(current, history_copy.last().unwrap());
+        assert_eq!(current, *history_copy.last().unwrap());
 
-        println!("{:#?}", current);
+        println!("move {}: {:#?}", moves, current);
         if current.is_ended(&history_copy) {
             break;
         }
-        if moves > 100 {
+        if moves > 500 {
             break;
         }
 
@@ -368,7 +367,11 @@ fn run_simulation(
             .into_iter()
             .map(|a| (a, current.next_state(&a)))
             .collect::<Vec<_>>();
-        println!("");
+        // let mut actions_states = Vec::new();
+        // for a in legal_actions {
+        //     actions_states.push((a, current.next_state(&a)));
+        // }
+        println!();
         // println!("{:?}", actions_states);
 
         assert!(actions_states.iter().all(|(_a, s)| s.next != current.next));
@@ -402,7 +405,7 @@ fn run_simulation(
                 log_total = 0.0_f64;
             }
             let values_actions = actions_statistics
-                .iter()
+                .into_iter()
                 .map(|(a, s, e)| {
                     let v = e.value / cmp::max(e.visits, 1) as f64
                         + 1.4 * (log_total / cmp::max(e.visits, 1) as f64).sqrt();
@@ -413,29 +416,30 @@ fn run_simulation(
             let max_value = values_actions
                 .iter()
                 .fold(f64::NAN, |acc, (_a, _s, v)| acc.max(*v));
-            let stat_choices = values_actions
-                .iter()
+            let choices = values_actions
+                .into_iter()
                 .filter(|x| x.2 == max_value)
                 .collect::<Vec<_>>();
-            let choice = rng.choose(&stat_choices);
-            current = choice.unwrap().1;
-            history_copy.push(*current);
-            visited_states.push(*current);
+            current = rng.choose(&choices).unwrap().1;
+            history_copy.push(current);
+            visited_states.push(current);
         } else {
             // randomly choose the move, perhaps weighted by an algorithm
-            let rand_choices = actions_states
-                .iter()
+            let choices = actions_states
+                .into_iter()
                 .map(|(a, s)| (a, s, 0.0))
                 .collect::<Vec<_>>();
-            let choice = rng.choose(&rand_choices);
-            current = choice.unwrap().1;
-            history_copy.push(*current);
+            current = rng.choose(&choices).unwrap().1;
+            history_copy.push(current);
         }
 
         moves += 1;
     }
 
-    let win_values = current.win_values(&history_copy).unwrap();
+    let win_values = match current.win_values(&history_copy) {
+        Some(values) => values,
+        None => return,
+    };
     for state in visited_states {
         table.entry(state).and_modify(|e| {
             e.visits += 1;
