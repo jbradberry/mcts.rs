@@ -180,9 +180,9 @@ impl BoardState<ChongAction, ChongPlayer> for ChongState {
             (ChongAction { piece: ChongPiece::Pawn, .. }, ChongPlayer::Player2) =>
                 Self { pawn2: value, next: self.next.next_player(), ..*self },
             (ChongAction { piece: ChongPiece::Stone, .. }, ChongPlayer::Player1) =>
-                Self { stones1: value, next: self.next.next_player(), ..*self },
+                Self { stones1: self.stones1 | value, next: self.next.next_player(), ..*self },
             (ChongAction { piece: ChongPiece::Stone, .. }, ChongPlayer::Player2) =>
-                Self { stones2: value, next: self.next.next_player(), ..*self },
+                Self { stones2: self.stones2 | value, next: self.next.next_player(), ..*self },
         }
     }
 
