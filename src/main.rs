@@ -369,36 +369,53 @@ fn run_simulation(state: &ChongState, history: &[ChongState],
 }
 
 
-fn mcts(current: &ChongState, history: &[ChongState]) -> bool {
+fn mcts(current: &ChongState, history: &[ChongState]) -> Option<ChongAction> {
     let now = Instant::now();
     let limit = Duration::new(30, 0);
 
     let mut games: u32 = 0;
     let mut table = HashMap::new();
+
+    let mut actions_states = current.legal_actions(history)
+        .into_iter()
+        .map(|a| (a, current.next_state(&a)))
+        .collect::<Vec<_>>();
+
     while now.elapsed() < limit {
         run_simulation(&current, &history, &mut table);
         games += 1;
     }
 
-    true
+    println!("simulations: {}", games);
+
+    actions_states.sort_by(|a, b| {
+        let stat1 = table.get(&a.1).unwrap();
+        let stat2 = table.get(&b.1).unwrap();
+
+        let v1 = stat1.value as f64 / stat1.visits as f64;
+        let v2 = stat2.value as f64 / stat2.visits as f64;
+
+        v1.partial_cmp(&v2).unwrap()
+    });
+    actions_states.iter().map(|(a, _)| *a).last()
 }
 
 
 fn main() {
-    let mut buffer = String::new();
+    // let mut buffer = String::new();
 
-    io::stdin().read_to_string(&mut buffer)
-               .expect("Failed to read input.");
+    // io::stdin().read_to_string(&mut buffer)
+    //            .expect("Failed to read input.");
 
-    let history: Vec<ChongState> = serde_json::from_str(&buffer).unwrap();
-    // let history = vec![ChongState::starting_state()];
+    // let history: Vec<ChongState> = serde_json::from_str(&buffer).unwrap();
+    let history = vec![ChongState::starting_state()];
     let current_state = match history.last() {
         None => return,
         Some(x) => x,
     };
 
-    let result = mcts(&current_state, &history);
-    println!("result = {}", result);
+    let result = mcts(&current_state, &history).unwrap();
+    println!("result = {:?}, {}, {}", result.piece, result.r, result.c);
 }
 
 
