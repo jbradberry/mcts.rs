@@ -12,6 +12,7 @@ use std::collections::HashMap;
 use std::f64;
 use std::io;
 use std::io::prelude::*;
+use std::time::{Duration, Instant};
 
 use rand::{thread_rng, Rng};
 
@@ -369,10 +370,12 @@ fn run_simulation(state: &ChongState, history: &[ChongState],
 
 
 fn mcts(current: &ChongState, history: &[ChongState]) -> bool {
+    let now = Instant::now();
+    let limit = Duration::new(30, 0);
+
     let mut games: u32 = 0;
     let mut table = HashMap::new();
-    loop {
-        if games > 1_000 { break; }
+    while now.elapsed() < limit {
         run_simulation(&current, &history, &mut table);
         games += 1;
     }
@@ -388,6 +391,7 @@ fn main() {
                .expect("Failed to read input.");
 
     let history: Vec<ChongState> = serde_json::from_str(&buffer).unwrap();
+    // let history = vec![ChongState::starting_state()];
     let current_state = match history.last() {
         None => return,
         Some(x) => x,
